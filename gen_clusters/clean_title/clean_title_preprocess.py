@@ -27,7 +27,7 @@ def write_tokens(tokens, sep):
 
 def die():
     print "Please input the required parameters"
-    print "Usage: clean_title_preprocess.py <input json filename> <output filename>"
+    print "Usage: clean_title_preprocess.py <input json filename> <output filename> [<token separator=\\t>]"
     exit(1)
 
 if len(sys.argv) < 3:
@@ -35,6 +35,10 @@ if len(sys.argv) < 3:
 
 inputFile = sys.argv[1]
 outputFile = sys.argv[2]
+separator = "\t"
+
+if len(sys.argv) > 3:
+    separator = sys.argv[3]
 
 out = open(outputFile, "w")
 
@@ -54,6 +58,6 @@ for row in hits:
 
                 key = uri + ":" + ' '.join(tokens)
                 # print("Adding:" + str(tokens))
-                out.write(key + "\t" + write_tokens(tokens, "\t") + "\n")
+                out.write(key + "\t" + write_tokens(tokens, separator) + "\n")
 
 file.close()

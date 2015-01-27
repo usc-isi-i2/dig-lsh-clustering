@@ -1,6 +1,6 @@
 __author__ = 'dipsy'
 
-from lsh.lsh import Cluster
+from lsh.lsh import Cluster, IntegerCluster
 import sys
 import json
 
@@ -10,6 +10,7 @@ separator = "\t"
 numHashes = 20
 numItemsInBand = 5
 minItemsInCluster = 2
+dataType = "integer"
 
 def parse_args():
     global inputFilename
@@ -18,6 +19,7 @@ def parse_args():
     global numHashes
     global numItemsInBand
     global minItemsInCluster
+    global dataType
 
     for arg_idx, arg in enumerate(sys.argv):
         if arg == "--input":
@@ -38,10 +40,13 @@ def parse_args():
         if arg == "--minItemsInCluster":
             minItemsInCluster = int(sys.argv[arg_idx+1])
             continue
+        if arg == "--dataType":
+            dataType = sys.argv[arg_idx+1]
+            continue
 
 def die():
     print "Please input the required parameters"
-    print "Usage: runLSH.py --input <input filename> --output <output filename> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--minItemsInCluster <minItemsInCluster=2>]"
+    print "Usage: runLSH.py --input <input filename> --output <output filename> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--minItemsInCluster <minItemsInCluster=2>] [--dataType <default=integer|string>]"
     exit(1)
 
 parse_args()
@@ -50,8 +55,11 @@ if inputFilename is None:
 if outputFilename is None:
     die()
 
-print "Using numHashes:" + str(numHashes) + ", numItemsInBand:" + str(numItemsInBand) + ", minItemsInCluster:" + str(minItemsInCluster)
-cluster = Cluster(numHashes, numItemsInBand)
+print "Using dataType:" + dataType +", numHashes:" + str(numHashes) + ", numItemsInBand:" + str(numItemsInBand) + ", minItemsInCluster:" + str(minItemsInCluster)
+if dataType == "string":
+    cluster = Cluster(numHashes, numItemsInBand)
+else:
+    cluster = IntegerCluster(numHashes, numItemsInBand)
 file = open(inputFilename, 'r')
 for line in file:
     idx = line.find("\t")
