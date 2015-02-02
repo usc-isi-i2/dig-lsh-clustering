@@ -53,14 +53,35 @@ class IntegerMinHashSignature(MinHashSignature):
     """Creates signatures for sets/tuples using minhash."""
     #100 random ints generated using: numpy.random.randint(1, 1000, 100)
 
-    random_ints = [507, 196,  79, 522, 738, 996, 115, 343, 727, 872, 102, 447, 547,
-       700, 753, 503, 120, 171, 476, 151, 379, 719, 124, 944, 875, 145,
-       376, 260, 526, 116, 708, 534, 609, 694,  17, 929, 291,  73, 397,
-       418, 259, 633, 755,  83,  26, 491,  90,  45,  77, 265, 159, 490,
-       829, 229,  25, 316, 245, 980,  71, 917, 395, 927,  79, 109, 979,
-         8, 753, 251, 517, 941, 737, 971, 989,  35, 854, 892, 637,  87,
-       476, 361, 400, 588, 506,  47, 494, 550, 968, 870, 972,  75, 608,
-       820,  77,  22, 870, 327, 384, 271, 896, 562]
+    # random_ints = [507, 196,  79, 522, 738, 996, 115, 343, 727, 872, 102, 447, 547,
+    #    700, 753, 503, 120, 171, 476, 151, 379, 719, 124, 944, 875, 145,
+    #    376, 260, 526, 116, 708, 534, 609, 694,  17, 929, 291,  73, 397,
+    #    418, 259, 633, 755,  83,  26, 491,  90,  45,  77, 265, 159, 490,
+    #    829, 229,  25, 316, 245, 980,  71, 917, 395, 927,  79, 109, 979,
+    #      8, 753, 251, 517, 941, 737, 971, 989,  35, 854, 892, 637,  87,
+    #    476, 361, 400, 588, 506,  47, 494, 550, 968, 870, 972,  75, 608,
+    #    820,  77,  22, 870, 327, 384, 271, 896, 562]
+
+    #numpy.random.randint(1000000, 100000000, 100)
+    random_ints = [51998748, 93498184, 61059477, 52880981,  2000959, 88381887,
+       46178092,  1550718, 66906016, 48232123, 55763301, 37313922,
+       38252277, 63070672, 36822158,  6190792, 45803061, 19626999,
+       46362502,  1600956, 10454321, 26407057, 87269824, 37876222,
+       55628313, 87251790, 49737164, 33558588, 13609187, 16200540,
+       66596626, 87222234, 27570638, 67419278, 69969148, 23279986,
+       24768567, 65892152, 58607293, 50723694, 89246437, 70746160,
+       18072023,  3410393, 85347128, 31572599, 34635847, 64545199,
+       48968049, 78670136, 65000284, 88960285, 94673106, 45489519,
+       95135626, 25146681, 59725811, 20192197, 34504760, 27035030,
+       50436063, 44755176, 62801560, 56177570, 15129140, 60171501,
+       23899533, 37066545, 46872328, 74223180, 18272535, 75783866,
+        9119632, 56121465, 54954553,  7570517, 75726161, 24884577,
+       14152140, 15584712, 35875836,  6137412, 77035467, 81931741,
+       33025578, 90241436, 28338233, 51815562, 91177556, 92823300,
+       46084291, 52253969, 85771590, 37257347, 26132367, 43279296,
+       60538475,  5659999, 76867186, 78184107]
+
+
 
     #def __init__(self, dim):
     #    self.random_ints = numpy.random.randint(1, 100*dim, dim)
@@ -127,6 +148,7 @@ class Cluster(object):
         self.hasher = LSH(minHashLen, numRowsInBucket, threshold)
         self.hashmaps = [defaultdict(list)
                          for _ in range(self.hasher.get_n_bands())]
+        self.lshmap = {}
 
     def add_set(self, s, label=None):
         # A label for this set
@@ -141,11 +163,13 @@ class Cluster(object):
 
         # Union labels with same LSH key in same band
         lshKeys = self.hasher.hash(sig)
+        self.lshmap[label] = []
 
         for band_idx, hshval in enumerate(lshKeys):
             #print "Got band_idx, hashval: " + str(band_idx) + "," + str(hshval)
             self.hashmaps[band_idx][hshval].append(label)
             self.unionfind.union(label, self.hashmaps[band_idx][hshval][0])
+            self.lshmap[label].append(hshval)
 
     def get_clusters(self, min_cluster_len):
         for band_idx in range(0,len(self.hashmaps)):
@@ -164,7 +188,10 @@ class Cluster(object):
                 if(len(list) > min_cluster_len):
                     list2 = []
                     for label in list:
-                       list2.append((label, self.lshMap[label]))
+                        if self.lshmap[label]:
+                            list2.append((label, self.lshmap[label]))
+                        else:
+                            list2.append(label)
                     yield list2
 
     def get_cluster_unions(self, min_cluster_len):
@@ -188,6 +215,7 @@ class IntegerCluster(Cluster):
         self.hasher = IntegerLSH(minHashLen, numRowsInBucket, threshold)
         self.hashmaps = [defaultdict(list)
                          for _ in range(self.hasher.get_n_bands())]
+        self.lshmap = {}
 
     def add_set(self, s, label=None):
         # A label for this set
