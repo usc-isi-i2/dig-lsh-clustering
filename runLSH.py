@@ -11,6 +11,7 @@ numHashes = 20
 numItemsInBand = 5
 minItemsInCluster = 2
 dataType = "integer"
+outputHashes = False
 
 def parse_args():
     global inputFilename
@@ -20,6 +21,7 @@ def parse_args():
     global numItemsInBand
     global minItemsInCluster
     global dataType
+    global outputHashes
 
     for arg_idx, arg in enumerate(sys.argv):
         if arg == "--input":
@@ -43,10 +45,12 @@ def parse_args():
         if arg == "--dataType":
             dataType = sys.argv[arg_idx+1]
             continue
+        if arg == "--outputHashes":
+            outputHashes = True
 
 def die():
     print "Please input the required parameters"
-    print "Usage: runLSH.py --input <input filename> --output <output filename> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--minItemsInCluster <minItemsInCluster=2>] [--dataType <default=integer|string>]"
+    print "Usage: runLSH.py --input <input filename> --output <output filename> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--minItemsInCluster <minItemsInCluster=2>] [--dataType <default=integer|string>] [--outputHashes]"
     exit(1)
 
 parse_args()
@@ -75,7 +79,10 @@ for line in file:
 
 file.close()
 
-result = list(cluster.get_clusters(minItemsInCluster))
+if outputHashes:
+    result = list(cluster.get_clusters_with_hashes(minItemsInCluster))
+else:
+    result = list(cluster.get_clusters(minItemsInCluster))
 wFile = open(outputFilename, "w")
 wFile.write("{\n")
 wFile.write("\"numClusters\":" + str(len(result)) + ",\n")
@@ -91,6 +98,7 @@ sep = ""
 for cluster_item in result:
     wFile.write(sep)
     wFile.write("\t{\"cluster\": \n")
+    # print cluster_item
     str = json.dumps(cluster_item, indent=16)
     str = str[1:len(str)-1]
     wFile.write("\t\t[" + str + "\t\t]\n")

@@ -3,6 +3,13 @@ dig-lsh-clustering
 
 Clustering documents based on LSH
 
+Requirements
+------------
+1. gensim: sudo pip install -U gensim
+
+Usage
+-----
+
 Usage: 
 ```
 runLSH.py --input <input filename> --output <output filename> [--separator <sep=\t>] [--dataType integer|string] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--minItemsInCluster <minItemsInCluster=2>]
