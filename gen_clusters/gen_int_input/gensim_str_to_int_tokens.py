@@ -3,16 +3,24 @@ from gensim import corpora
 import sys
 import json
 import codecs
+import subprocess
 
 class Corpus(object):
-    def __init__(self, filename, separator):
+    def __init__(self, filename, filesystem, separator):
         self.filename = filename
+        self.filesystem = filesystem
         self.separator = separator
         self.key_dictionary = corpora.Dictionary()
         self.token_dictionary = corpora.Dictionary()
 
     def __iter__(self):
-        for line in open(self.filename):
+        stream = None
+        if inputFileSystem == "hdfs":
+            cat = subprocess.Popen(["hadoop", "fs", "-cat", self.filename], stdout=subprocess.PIPE)
+            stream = cat.stdout
+        else:
+            stream = open(self.filename)
+        for line in stream:
             all_tokens = line.lower().split(self.separator)
             key = all_tokens[0]
             tokens = all_tokens[1:]
@@ -26,6 +34,12 @@ class Corpus(object):
 
     def get_token_hashmap(self):
         return self.token_dictionary.token2id
+
+    def save_key_dictionary(self, filename):
+        self.key_dictionary.save_as_text(filename)
+
+    def save_token_dictionary(self, filename):
+        self.token_dictionary.save_as_text(filename)
 
     def get_line_representation(self, line):
         all_tokens = line.lower().split(self.separator)
@@ -46,29 +60,29 @@ def write_tokens(tokens, sep):
 
 
 inputFile = sys.argv[1]
-outputFile = sys.argv[2]
-keyHashFile = sys.argv[3]
-tokenHashFile = sys.argv[4]
+inputFileSystem = sys.argv[2]
+outputFile = sys.argv[3]
+keyHashFile = sys.argv[4]
+tokenHashFile = sys.argv[5]
 
 separator = "\t"
 
-if len(sys.argv) > 5:
-    separator = sys.argv[5]
+if len(sys.argv) > 6:
+    separator = sys.argv[6]
 
-outFP = open(outputFile, "w")
-corpus = Corpus(inputFile, separator)
+try:
+    outFP = open(outputFile, "w")
+    corpus = Corpus(inputFile, inputFileSystem, separator)
 
-for vectors in corpus:
-    vector_list = list(vectors)
-    outFP.write(write_tokens(vector_list, separator) + "\n")
+    for vectors in corpus:
+        vector_list = list(vectors)
+        outFP.write(write_tokens(vector_list, separator) + "\n")
 
-outFP.close()
+    outFP.close()
 
-keyHashFP = open(keyHashFile, "w")
-keyHashFP.write(json.dumps(corpus.get_key_hashmap()))
-keyHashFP.close()
+    corpus.save_key_dictionary(keyHashFile);
+    corpus.save_token_dictionary(tokenHashFile);
+except Exception as e:
+    print "Exception({0}): {1}".format(e.errno, e.strerror)
 
-tokenHashFP = codecs.open(tokenHashFile, encoding='utf-8', mode='w')
-tokenHashFP.write(json.dumps(corpus.get_token_hashmap()))
-tokenHashFP.close()
 
