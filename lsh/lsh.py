@@ -224,8 +224,11 @@ class IntegerCluster(Cluster):
 
         int_s = []
         for t in s:
-            int_s.append(int(t))
-        Cluster.add_set(self, int_s, label)
+            t = t.strip()
+            if len(t) > 0:
+                int_s.append(int(t))
+        if len(int_s) > 0:
+            Cluster.add_set(self, int_s, label)
 
 def shingle(s, k):
     """Generate k-length shingles of string s"""
