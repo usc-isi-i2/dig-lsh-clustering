@@ -6,6 +6,7 @@ Clustering documents based on LSH
 Requirements
 ------------
 1. gensim: sudo pip install -U gensim
+2. csvsort: sudo pip install csvsort
 
 Usage
 -----

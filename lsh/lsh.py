@@ -131,7 +131,7 @@ class IntegerLSH(LSH):
         """Generate hashvals for this signature"""
         for band in zip(*(iter(sig),) * self.r):
             #band = r values from sig at a time
-            yield ''.join(list(str(band)))
+            yield ''.join(str(x).zfill(10) for x in band)
 
 class Cluster(object):
     """Clusters sets with Jaccard similarity above threshold with high
