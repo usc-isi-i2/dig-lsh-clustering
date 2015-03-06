@@ -67,7 +67,7 @@ oFile = open(outputFilename, "w")
 numOutputFiles = numHashes/numItemsInBand
 lshFiles = []
 for i in range(0, numOutputFiles):
-    lFile = open(LSHdir + "/lsh-" + str(i) + ".tsv", "r")
+    lFile = LSHdir + "/lsh-" + str(i) + ".tsv"
     lshFiles.append(lFile)
 
 for line in file:
@@ -85,7 +85,7 @@ for line in file:
                 matches = []
                 for i in range(0, len(sig)):
                     lshKey = sig[i]
-                    matchLines = util.binary_search_in_file(lshFiles[i].name, lshKey, key=get_lsh_key_from_line)
+                    matchLines = util.binary_search_in_file(lshFiles[i], lshKey, key=get_lsh_key_from_line)
                     if matchLines is not None and len(matchLines) > 0:
                         for matchLine in matchLines:
                             matchLine = matchLine.strip()
@@ -97,8 +97,6 @@ for line in file:
                     oFile.write(key + separator + util.write_tokens(matches, separator) + "\n")
 file.close()
 oFile.close()
-for i in range(0, numOutputFiles):
-    lshFiles[i].close()
 
 print "Done generating clusters"
 

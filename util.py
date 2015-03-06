@@ -33,58 +33,60 @@ def binary_search_in_file(filename, matchvalue, key=lambda val: val):
     start = pos = 0
     end = os.path.getsize(filename)
 
-    with open(filename, 'rb') as fptr:
+    fptr = open(filename, 'rb')
 
         # Limit the number of times we binary search.
 
-        for rpt in xrange(50):
+    for rpt in xrange(50):
 
-            last = pos
-            pos = start + ((end - start) / 2)
-            fptr.seek(pos)
+        last = pos
+        pos = start + ((end - start) / 2)
+        fptr.seek(pos)
 
-            # Move the cursor to a newline boundary.
+        # Move the cursor to a newline boundary.
 
-            fptr.readline()
+        fptr.readline()
 
-            line = fptr.readline()
-            linevalue = key(line)
+        line = fptr.readline()
+        linevalue = key(line)
 
-            if linevalue == matchvalue or pos == last:
+        if linevalue == matchvalue or pos == last:
 
-                # Seek back until we no longer have a match.
+            # Seek back until we no longer have a match.
 
-                while True:
-                    fptr.seek(-max_line_len, 1)
-                    fptr.readline()
-                    if matchvalue != key(fptr.readline()):
-                        break
+            while True:
+                fptr.seek(-max_line_len, 1)
+                fptr.readline()
+                if matchvalue != key(fptr.readline()):
+                    break
 
-               # Seek forward to the first match.
+           # Seek forward to the first match.
 
-                for rpt in xrange(max_line_len):
-                    line = fptr.readline()
-                    linevalue = key(line)
-                    if matchvalue == linevalue:
-                        break
-                else:
-                    # No match was found.
-
-                    return []
-
-                results = []
-
-                while linevalue == matchvalue:
-                    results.append(line)
-                    line = fptr.readline()
-                    linevalue = key(line)
-
-                return results
-            elif linevalue < matchvalue:
-                start = fptr.tell()
+            for rpt in xrange(max_line_len):
+                line = fptr.readline()
+                linevalue = key(line)
+                if matchvalue == linevalue:
+                    break
             else:
-                assert linevalue > matchvalue
-                end = fptr.tell()
+                # No match was found.
+
+                return []
+
+            results = []
+
+            while linevalue == matchvalue:
+                results.append(line)
+                line = fptr.readline()
+                linevalue = key(line)
+
+            return results
+        elif linevalue < matchvalue:
+            start = fptr.tell()
         else:
-            raise RuntimeError('binary search failed')
+            assert linevalue > matchvalue
+            end = fptr.tell()
+    else:
+        raise RuntimeError('binary search failed')
+
+    fptr.close()
 
