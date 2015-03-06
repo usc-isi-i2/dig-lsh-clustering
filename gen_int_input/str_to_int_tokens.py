@@ -41,8 +41,14 @@ class Corpus(object):
     def save_key_dictionary(self, filename):
         self.key_dictionary.save_as_text(filename)
 
+    def load_key_dictionary(self, filename):
+        self.key_dictionary.load_as_text(filename)
+
     def save_token_dictionary(self, filename):
         self.token_dictionary.save_as_text(filename)
+
+    def load_token_dictionary(self, filename):
+        self.token_dictionary.load_from_text(filename)
 
     def get_line_representation(self, line):
         all_tokens = line.lower().strip().split(self.separator)
@@ -62,6 +68,7 @@ outputFile = None
 keyHashFile = None
 tokenHashFile = None
 separator = "\t"
+inputTokensHashFile = None
 
 def parse_args():
     global inputFile
@@ -70,6 +77,7 @@ def parse_args():
     global keyHashFile
     global tokenHashFile
     global separator
+    global inputTokensHashFile
 
     for arg_idx, arg in enumerate(sys.argv):
         if arg == "--input":
@@ -90,12 +98,15 @@ def parse_args():
         if arg == "--separator":
             separator = sys.argv[arg_idx+1]
             continue
+        if arg == "--inputTokensFile":
+            inputTokensHashFile = sys.argv[arg_idx+1]
+            continue
 
 def die():
     print "Please input the required parameters"
     print "Usage: str_to_int_tokens.py --input <input filename> [--inputFS <hdfs|default=file>] " \
           "--output <output filename> --keysFile <keys map filename> --tokensFile <tokens map filename>" \
-          "--separator <separator-default=tab>"
+          "--separator <separator-default=tab> [--inputTokensFile <Tokens Hashfile to use as input>]"
     exit(1)
 
 def write_tokens(tokens, sep):
@@ -113,6 +124,8 @@ if inputFile is None or outputFile is None or tokenHashFile is None:
 try:
     outFP = open(outputFile, "w")
     corpus = Corpus(inputFile, inputFileSystem, separator, keyHashFile is not None)
+    if inputTokensHashFile is not None:
+        corpus.load_token_dictionary(inputTokensHashFile)
 
     for vectors in corpus:
         vector_list = list(vectors)

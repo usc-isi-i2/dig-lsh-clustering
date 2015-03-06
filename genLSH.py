@@ -3,7 +3,7 @@ import util
 __author__ = 'dipsy'
 
 import sys
-from lsh.lsh import LSH
+from lsh.lsh import LSH, IntegerLSH
 import os
 
 inputFilename = None
@@ -11,6 +11,7 @@ outputDir = None
 separator = "\t"
 numHashes = 20
 numItemsInBand = 5
+dataType = "integer"
 
 def parse_args():
     global inputFilename
@@ -18,6 +19,7 @@ def parse_args():
     global separator
     global numHashes
     global numItemsInBand
+    global dataType
 
     for arg_idx, arg in enumerate(sys.argv):
         if arg == "--input":
@@ -35,6 +37,9 @@ def parse_args():
         if arg == "--numItemsInBand":
             numItemsInBand = int(sys.argv[arg_idx+1])
             continue
+        if arg == "--dataType":
+            dataType = sys.argv[arg_idx+1]
+            continue
 
 def die():
     print "Please input the required parameters"
@@ -45,7 +50,11 @@ args = parse_args()
 if inputFilename is None or outputDir is None:
     die()
 
-hasher = LSH(numHashes, numItemsInBand, None)
+hasher = None
+if dataType == "integer":
+    hasher = IntegerLSH(numHashes, numItemsInBand, None)
+else:
+    hasher = LSH(numHashes, numItemsInBand, None)
 
 file = open(inputFilename, 'r')
 
