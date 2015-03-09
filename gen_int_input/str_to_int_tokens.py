@@ -48,6 +48,7 @@ class Corpus(object):
         self.token_dictionary.save_as_text(filename)
 
     def load_token_dictionary(self, filename):
+        print "Load the token dictionary from file: " + filename
         self.token_dictionary.load_from_text(filename)
 
     def get_line_representation(self, line):
