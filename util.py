@@ -26,67 +26,63 @@ def sort_csv_file(filename, column, delim):
 
     csvsort(filename, [column], delimiter=delim)
 
+class Searcher:
+    def __init__(self, filename):
+        self.f = open(filename, 'rb')
+        self.f.seek(0,2)
+        self.length = self.f.tell()
 
-def binary_search_in_file(filename, matchvalue, key=lambda val: val):
-    max_line_len = 2 ** 12
+    def readToEndOfLineAfterPos(self, p):
+        while p >= 0:
+            self.f.seek(p)
+            if self.f.read(1) == '\n': break
+            p -= 1
+        if p < 0: self.f.seek(0)
+        return p
 
-    start = pos = 0
-    end = os.path.getsize(filename)
+    def seekBackToFindStr(self, p, string, key=lambda val: val):
+        delta = 100
+        prev_p = -1
+        while p >= 0:
+            p = p - delta
+            p = self.readToEndOfLineAfterPos(p)
+            line = (self.f.readline())
+            #print "seek got:" + line + ":" + string + ":" + str(p)
+            if key(line) != string:
+                p = prev_p
+                self.readToEndOfLineAfterPos(p)
+                break
+            prev_p = p
+        if p < 0: self.f.seek(0)
+        return p
 
-    fptr = open(filename, 'rb')
+    def find(self, string,  key=lambda val: val):
+        low = 0
+        high = self.length
+        while low < high:
+            mid = (low+high)//2
+            p = mid
+            self.readToEndOfLineAfterPos(p)
+            line = self.f.readline()
+            keyVal = key(line)
+            #print '--', low, high, mid, keyVal
+            if keyVal == string:
+                low = self.seekBackToFindStr(mid, string, key)
+                break
 
-        # Limit the number of times we binary search.
-
-    for rpt in xrange(50):
-
-        last = pos
-        pos = start + ((end - start) / 2)
-        fptr.seek(pos)
-
-        # Move the cursor to a newline boundary.
-
-        fptr.readline()
-
-        line = fptr.readline()
-        linevalue = key(line)
-
-        if linevalue == matchvalue or pos == last:
-
-            # Seek back until we no longer have a match.
-
-            while True:
-                fptr.seek(-max_line_len, 1)
-                fptr.readline()
-                if matchvalue != key(fptr.readline()):
-                    break
-
-           # Seek forward to the first match.
-
-            for rpt in xrange(max_line_len):
-                line = fptr.readline()
-                linevalue = key(line)
-                if matchvalue == linevalue:
-                    break
+            if keyVal < string:
+                low = mid+1
             else:
-                # No match was found.
+                high = mid
 
-                return []
+        self.readToEndOfLineAfterPos(low)
 
-            results = []
-
-            while linevalue == matchvalue:
-                results.append(line)
-                line = fptr.readline()
-                linevalue = key(line)
-
-            return results
-        elif linevalue < matchvalue:
-            start = fptr.tell()
-        else:
-            assert linevalue > matchvalue
-            end = fptr.tell()
-    else:
-        raise RuntimeError('binary search failed')
-
-    fptr.close()
-
+        result = [ ]
+        while True:
+            line = self.f.readline()
+            keyVal = key(line)
+            if not line or not keyVal == string: break
+            if line[-1:] == '\n': line = line[:-1]
+            #print "Append: " + line + "\n"
+            result.append(line)
+        return result

@@ -14,8 +14,10 @@ class Corpus(object):
         else:
             self.key_dictionary = None
         self.token_dictionary = corpora.Dictionary()
+        print "Created blank token dictionary"
 
     def __iter__(self):
+        print "Start the conversion"
         stream = None
         if inputFileSystem == "hdfs":
             cat = subprocess.Popen(["hadoop", "fs", "-cat", self.filename], stdout=subprocess.PIPE)
@@ -39,17 +41,21 @@ class Corpus(object):
         return self.token_dictionary.token2id
 
     def save_key_dictionary(self, filename):
-        self.key_dictionary.save_as_text(filename)
+        self.key_dictionary.save(filename)
+        self.key_dictionary.save_as_text(filename + ".txt")
 
     def load_key_dictionary(self, filename):
-        self.key_dictionary.load_as_text(filename)
+        self.key_dictionary.load(filename)
 
     def save_token_dictionary(self, filename):
-        self.token_dictionary.save_as_text(filename)
+        self.token_dictionary.save(filename)
+        self.token_dictionary.save_as_text(filename + ".txt")
+        print self.token_dictionary
 
     def load_token_dictionary(self, filename):
         print "Load the token dictionary from file: " + filename
-        self.token_dictionary.load_from_text(filename)
+        self.token_dictionary = corpora.Dictionary.load(filename)
+        print self.token_dictionary
 
     def get_line_representation(self, line):
         all_tokens = line.lower().strip().split(self.separator)

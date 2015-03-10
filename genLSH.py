@@ -43,7 +43,7 @@ def parse_args():
 
 def die():
     print "Please input the required parameters"
-    print "Usage: genLSH.py --input <input filename> --output <output dir> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>]"
+    print "Usage: genLSH.py --input <input filename> --output <output dir> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--dataType <default=integer|string>]"
     exit(1)
 
 args = parse_args()

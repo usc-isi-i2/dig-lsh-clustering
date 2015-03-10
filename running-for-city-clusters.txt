@@ -14,26 +14,26 @@ sys	0m1.258s
 ---------------------------------------------------------------------
 Option 2: Generate Min hashes based on int tokens.
 ---------------------------------------------------------------------
-time python gen_int_input/str_to_int_tokens.py --input gen_clusters/cities/saam_cities.csv --output gen_clusters/cities/saam_cities-int.csv --tokensFile gen_clusters/cities/cities-tokens-map.csv
-real	0m0.840s
-user	0m0.293s
-sys	0m0.277s
+time python gen_int_input/str_to_int_tokens.py --input gen_clusters/cities/saam_cities.csv --output gen_clusters/cities/saam_cities-int.csv --tokensFile gen_clusters/cities/cities-tokens-map.dct
+real	0m0.366s
+user	0m0.278s
+sys	0m0.075s
 
-time python gen_int_input/str_to_int_tokens.py --input gen_clusters/cities/geonames_cities.csv --output gen_clusters/cities/geonames_cities-int.csv --inputTokensFile gen_clusters/cities/cities-tokens-map.csv --tokensFile gen_clusters/cities/cities-tokens-map.csv
-real	0m8.140s
-user	0m8.017s
-sys	0m0.119s
+time python gen_int_input/str_to_int_tokens.py --input gen_clusters/cities/geonames_cities.csv --output gen_clusters/cities/geonames_cities-int.csv --inputTokensFile gen_clusters/cities/cities-tokens-map.dct --tokensFile gen_clusters/cities/cities-tokens-map.dct
+real	0m8.316s
+user	0m8.142s
+sys	0m0.130s
 
 
 time python genMinhash.py --input gen_clusters/cities/saam_cities-int.csv --output gen_clusters/cities/saam_cities-int-minHashes-50.csv --dataType integer --numHashes 50
-real	0m0.326s
-user	0m0.301s
-sys	0m0.021s
+real	0m0.338s
+user	0m0.306s
+sys	0m0.024s
 
-time python genMinhash.py --input gen_clusters/cities/geonames_cities-int.csv --output gen_clusters/cities/geonames_cities-minHashes-50.csv --dataType integer --numHashes 50
-real	0m23.260s
-user	0m22.916s
-sys	0m0.312s
+time python genMinhash.py --input gen_clusters/cities/geonames_cities-int.csv --output gen_clusters/cities/geonames_cities-int-minHashes-50.csv --dataType integer --numHashes 50
+real	0m22.820s
+user	0m22.505s
+sys	0m0.307s
 
 
 ---------------------------------------------------------------------
@@ -41,12 +41,12 @@ Now, generate the LSH for the base, in this case geonames
 and then compute clusters for the SAAM against the base
 ---------------------------------------------------------------------
 
-time python genLSH.py --output gen_clusters/cities/geonames-lsh-50-10 --input gen_clusters/cities/geonames_cities-minHashes-50.csv --dataType integer --numHashes 50 --numItemsInBand 10
-real	0m31.086s
-user	0m29.342s
-sys	0m1.416s
+time python genLSH.py --output gen_clusters/cities/geonames-lsh-50-10 --input gen_clusters/cities/geonames_cities-int-minHashes-50.csv --dataType integer --numHashes 50 --numItemsInBand 10
+real	0m32.012s
+user	0m30.184s
+sys	0m1.443s
 
-time python genClusters.py --input gen_clusters/cities/saam_cities-minHashes-50.csv  --LSHdir gen_clusters/cities/geonames-lsh-50-10 --output gen_clusters/cities/saam-matched-to-geonames-50-10.csv --numHashes 50 --numItemsInBand 10 --dataType integer
-real	2m3.014s
-user	1m34.835s
-sys	0m27.901s
+time python genClusters.py --input gen_clusters/cities/saam_cities-int-minHashes-50.csv  --LSHdir gen_clusters/cities/geonames-lsh-50-10 --output gen_clusters/cities/saam-matched-to-geonames-50-10.csv --numHashes 50 --numItemsInBand 10 --dataType integer
+real	0m23.931s
+user	0m18.128s
+sys	0m1.232s
