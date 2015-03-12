@@ -96,10 +96,10 @@ def parse_args():
         if arg == "--inputFS":
             inputFileSystem = sys.argv[arg_idx+1]
             continue
-        if arg == "--keysFile":
+        if arg == "--outputKeysFile":
             keyHashFile = (sys.argv[arg_idx+1])
             continue
-        if arg == "--tokensFile":
+        if arg == "--outputTokensFile":
             tokenHashFile = (sys.argv[arg_idx+1])
             continue
         if arg == "--separator":
@@ -112,7 +112,7 @@ def parse_args():
 def die():
     print "Please input the required parameters"
     print "Usage: str_to_int_tokens.py --input <input filename> [--inputFS <hdfs|default=file>] " \
-          "--output <output filename> --keysFile <keys map filename> --tokensFile <tokens map filename>" \
+          "--output <output filename> --outputKeysFile <keys map filename> --outputTokensFile <tokens map filename>" \
           "--separator <separator-default=tab> [--inputTokensFile <Tokens Hashfile to use as input>]"
     exit(1)
 

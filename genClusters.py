@@ -4,11 +4,13 @@ __author__ = 'dipsy'
 
 
 import sys
-from lsh.lsh import LSH, IntegerLSH
-from util import Searcher
+import fileinput
+import os
 
 inputFilename = None
-LSHdir = None
+baseFilename = None
+inputPrefix = None
+basePrefix = None
 outputFilename = None
 separator = "\t"
 numHashes = 20
@@ -16,13 +18,16 @@ numItemsInBand = 5
 minItemsInCluster = 2
 dataType = "integer"
 
+
 def parse_args():
     global inputFilename
+    global inputPrefix
     global outputFilename
     global separator
     global numHashes
     global numItemsInBand
-    global LSHdir
+    global baseFilename
+    global basePrefix
     global minItemsInCluster
     global dataType
 
@@ -30,8 +35,14 @@ def parse_args():
         if arg == "--input":
             inputFilename = sys.argv[arg_idx+1]
             continue
-        if arg == "--LSHdir":
-            LSHdir = sys.argv[arg_idx+1]
+        if arg == "--inputPrefix":
+            inputPrefix = sys.argv[arg_idx+1]
+            continue
+        if arg == "--base":
+            baseFilename = sys.argv[arg_idx+1]
+            continue
+        if arg == "--basePrefix":
+            basePrefix = sys.argv[arg_idx+1]
             continue
         if arg == "--output":
             outputFilename = sys.argv[arg_idx+1]
@@ -52,65 +63,60 @@ def parse_args():
             dataType = sys.argv[arg_idx+1]
             continue
 
+
 def die():
     print "Please input the required parameters"
-    print "Usage: genClusters.py --input <input filename> --output <output dir> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--minItemsInCluster <minItemsInCluster=2>] [--dataType <default=integer|string>]"
+    print "Usage: genClusters.py --input <input filename> --inputPrefix <input Prefix> --base <base filename> --basePrefix <base prefix> " \
+          "--output <output dir> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>]" \
+          " [--minItemsInCluster <minItemsInCluster=2>] [--dataType <default=integer|string>]"
     exit(1)
 
-def get_lsh_key_from_line(line):
-    return line.split("\t")[0]
-
-args = parse_args()
-if inputFilename is None or outputFilename is None or LSHdir is None:
+parse_args()
+if inputFilename is None or outputFilename is None \
+        or baseFilename is None or basePrefix is None\
+        or inputPrefix is None:
     die()
 
 print "dataType:" + dataType + ", numHashes=" + str(numHashes) + ", numItemsInBand=" + str(numItemsInBand)\
       + ", minItemsInCluster=" + str(minItemsInCluster)
 
-file = open(inputFilename, 'r')
-hasher = None
-if dataType == "integer":
-    hasher = IntegerLSH(numHashes, numItemsInBand, None)
-else:
-    hasher = LSH(numHashes, numItemsInBand, None)
 
-oFile = open(outputFilename, "w")
+file_list = [inputFilename, baseFilename]
+tmp_combined_file = inputFilename + ".tmp"
+with open(tmp_combined_file, 'w') as file:
+    input_lines = fileinput.input(file_list)
+    file.writelines(input_lines)
 
-numOutputFiles = numHashes/numItemsInBand
-lshSearchers = []
-for i in range(0, numOutputFiles):
-    lFile = LSHdir + "/lsh-" + str(i) + ".tsv"
-    searcher = util.Searcher(lFile)
-    lshSearchers.append(searcher)
+util.sort_csv_file(tmp_combined_file, 0, '\t')
 
-for line in file:
-    idx = line.find("\t")
-    if idx != -1:
-        key = line[0:idx]
-        line_len = len(line)
-        data = line[idx + 1:line_len-1].strip() #remove the \n
-        if len(data) > 0:
-            tokens = data.split(separator)
-            if len(tokens) > 0:
-                sig = list(hasher.hash(tokens))
-                matches = []
-                for i in range(0, len(sig)):
-                    lshKey = sig[i]
-                    #print "Find " + lshKey + " in file: "
-                    matchLines = lshSearchers[i].find(lshKey, key=get_lsh_key_from_line)
+rFile = open(tmp_combined_file, 'r')
+wFile = open(outputFilename, 'w')
+currentLshKey = None
+currentClusterInput = []
+currentClusterBase = []
+for line in rFile:
+    lineParts = line.strip().split("\t")
+    lshKey = lineParts[0]
+    itemId = lineParts[1]
+    if currentLshKey is None:
+        currentLshKey = lshKey
 
-                    if matchLines is not None and len(matchLines) > 0:
-                        for matchLine in matchLines:
-                            matchLine = matchLine.strip()
-                            match = matchLine.split(separator)[1]
-                            matches.append(match)
+    if currentLshKey != lshKey:
+        if len(currentClusterInput) > 0:
+            for inputItem in currentClusterInput:
+                wFile.write(inputItem + separator + util.write_tokens(currentClusterBase, separator) + "\n")
+        del currentClusterInput[:]
+        del currentClusterBase[:]
+    currentLshKey = lshKey
+    if itemId.startswith(basePrefix):
+        currentClusterBase.append(itemId)
+    else:
+        currentClusterInput.append(itemId)
+rFile.close()
+wFile.close()
 
-                if len(matches) > minItemsInCluster:
-                    #print "Write " + lshKey + ":" +  str(len(matches))
-                    oFile.write(key + separator + util.write_tokens(matches, separator) + "\n")
+os.unlink(tmp_combined_file)
 
-file.close()
-oFile.close()
 
 print "Done generating clusters"
 

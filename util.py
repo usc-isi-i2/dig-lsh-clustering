@@ -1,6 +1,5 @@
 __author__ = 'dipsy'
 import os
-from csvsort import csvsort
 
 def write_tokens(tokens, sep):
     outStr = ""
@@ -23,8 +22,19 @@ def sort_csv_file(filename, column, delim):
     TMP_DIR = '.csvsort.%d' % os.getpid()
     if not os.path.exists(TMP_DIR):
         os.mkdir(TMP_DIR)
-
+    from csvsort import csvsort
     csvsort(filename, [column], delimiter=delim)
+    try:
+        for the_file in os.listdir(TMP_DIR):
+            file_path = os.path.join(TMP_DIR, the_file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except:
+                pass
+        os.rmdir(TMP_DIR)
+    except OSError:
+        pass
 
 class Searcher:
     def __init__(self, filename):
@@ -47,7 +57,7 @@ class Searcher:
             p = p - delta
             p = self.readToEndOfLineAfterPos(p)
             line = (self.f.readline())
-            #print "seek got:" + line + ":" + string + ":" + str(p)
+            #print "seek got:", line, ":", string, ":", p
             if key(line) != string:
                 p = prev_p
                 self.readToEndOfLineAfterPos(p)

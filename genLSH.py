@@ -3,30 +3,39 @@ import util
 __author__ = 'dipsy'
 
 import sys
-from lsh.lsh import LSH, IntegerLSH
+from lsh.lsh import LSH, IntegerLSH, MinHashSignature, IntegerMinHashSignature
 import os
 
 inputFilename = None
-outputDir = None
+inputType = "tokens"
+outputFilename = None
 separator = "\t"
 numHashes = 20
 numItemsInBand = 5
 dataType = "integer"
+keyPrefix = ""
+sortOutput = True
 
 def parse_args():
     global inputFilename
-    global outputDir
+    global outputFilename
     global separator
     global numHashes
     global numItemsInBand
     global dataType
+    global keyPrefix
+    global inputType
+    global sortOutput
 
     for arg_idx, arg in enumerate(sys.argv):
         if arg == "--input":
             inputFilename = sys.argv[arg_idx+1]
             continue
+        if arg == "--inputType":
+            inputType = sys.argv[arg_idx+1]
+            continue
         if arg == "--output":
-            outputDir = sys.argv[arg_idx+1]
+            outputFilename = sys.argv[arg_idx+1]
             continue
         if arg == "--separator":
             separator = sys.argv[arg_idx+1]
@@ -41,30 +50,38 @@ def parse_args():
             dataType = sys.argv[arg_idx+1]
             continue
 
+        if arg == "--keyPrefix":
+            keyPrefix = sys.argv[arg_idx+1]
+            continue
+        if arg == "--sortOutput":
+            sortOutput = (sys.argv[arg_idx+1])
+            continue
+
+
 def die():
     print "Please input the required parameters"
-    print "Usage: genLSH.py --input <input filename> --output <output dir> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--dataType <default=integer|string>]"
+    print "Usage: genLSH.py --input <input filename> [--inputType <tokens|minhash>] --output <output filename> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--dataType <default=integer|string>] [--keyPrefix <prefix for key]"
     exit(1)
 
 args = parse_args()
-if inputFilename is None or outputDir is None:
+if inputFilename is None or outputFilename is None:
     die()
 
 hasher = None
+signer = None
 if dataType == "integer":
     hasher = IntegerLSH(numHashes, numItemsInBand, None)
 else:
     hasher = LSH(numHashes, numItemsInBand, None)
+if inputType == "tokens":
+    if dataType == "integer":
+        signer = IntegerMinHashSignature(numHashes)
+    else:
+        signer = MinHashSignature(numHashes)
 
 file = open(inputFilename, 'r')
-
-numOutputFiles = numHashes/numItemsInBand
-wFiles = []
-if not os.path.exists(outputDir):
-    os.mkdir(outputDir)
-for i in range(0, numOutputFiles):
-    oFile = open(outputDir + "/lsh-" + str(i) + ".tsv", "w")
-    wFiles.append(oFile)
+wFile = open(outputFilename, 'w')
+numBands = numHashes/numItemsInBand
 
 for line in file:
     idx = line.find("\t")
@@ -77,13 +94,24 @@ for line in file:
             tokens = data.split(separator)
             if len(tokens) > 0:
                 #print "Adding tokens: " + str(tokens)
-                sig = list(hasher.hash(tokens))
-                for i in range(0, numOutputFiles):
-                    wFiles[i].write(sig[i] + separator + key + "\n")
-file.close()
-for i in range(0, numOutputFiles):
-    wFiles[i].close()
+                minHashSig = None
+                if inputType == "tokens":
+                    if dataType == "integer":
+                        tokens = util.get_int_list(tokens)
+                    #print "Sign", tokens
+                    if len(tokens) > 0:
+                        minHashSig = signer.sign(tokens)
+                else:
+                    minHashSig = tokens
 
-for i in range(0, numOutputFiles):
-    filename = outputDir + "/lsh-" + str(i) + ".tsv"
-    util.sort_csv_file(filename, 0, separator)
+                if minHashSig is not None:
+                    lshSig = list(hasher.hash(minHashSig))
+
+                    for i in range(0, numBands):
+                        wFile.write(str(i).zfill(3) + ":" + lshSig[i]  + separator + keyPrefix + key + "\n")
+file.close()
+wFile.close()
+
+if sortOutput is True:
+    print "Sorting output on LSH Keys.."
+    util.sort_csv_file(outputFilename, 0, separator)
