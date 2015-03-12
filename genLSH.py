@@ -14,7 +14,8 @@ numHashes = 20
 numItemsInBand = 5
 dataType = "integer"
 keyPrefix = ""
-sortOutput = True
+sortOutput = False
+outputMinhash = False
 
 def parse_args():
     global inputFilename
@@ -26,6 +27,7 @@ def parse_args():
     global keyPrefix
     global inputType
     global sortOutput
+    global outputMinhash
 
     for arg_idx, arg in enumerate(sys.argv):
         if arg == "--input":
@@ -56,11 +58,16 @@ def parse_args():
         if arg == "--sortOutput":
             sortOutput = (sys.argv[arg_idx+1])
             continue
+        if arg == "--outputMinhash":
+            outputMinhash = (sys.argv[arg_idx+1])
+            continue
 
 
 def die():
     print "Please input the required parameters"
-    print "Usage: genLSH.py --input <input filename> [--inputType <tokens|minhash>] --output <output filename> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--dataType <default=integer|string>] [--keyPrefix <prefix for key]"
+    print "Usage: genLSH.py --input <input filename> [--inputType <tokens|minhash>] --output <output filename> [--separator <sep=\\t>] " \
+          "[--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--dataType <default=integer|string>]" \
+          "[--keyPrefix <prefix for key] [--sortOutput <True|False=default] [--outputMinhash <True|False=default>"
     exit(1)
 
 args = parse_args()
@@ -106,9 +113,13 @@ for line in file:
 
                 if minHashSig is not None:
                     lshSig = list(hasher.hash(minHashSig))
+                    minOut = ""
+                    if outputMinhash:
+                        minOut = separator + util.write_tokens(minHashSig, separator)
 
                     for i in range(0, numBands):
-                        wFile.write(str(i).zfill(3) + ":" + lshSig[i]  + separator + keyPrefix + key + "\n")
+                        wFile.write(str(i).zfill(3) + ":" + lshSig[i] + separator + keyPrefix + key + minOut + "\n")
+
 file.close()
 wFile.close()
 

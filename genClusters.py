@@ -73,7 +73,6 @@ def die():
 
 parse_args()
 if inputFilename is None or outputFilename is None \
-        or baseFilename is None or basePrefix is None\
         or inputPrefix is None:
     die()
 
@@ -103,12 +102,15 @@ for line in rFile:
 
     if currentLshKey != lshKey:
         if len(currentClusterInput) > 0:
-            for inputItem in currentClusterInput:
-                wFile.write(inputItem + separator + util.write_tokens(currentClusterBase, separator) + "\n")
+            if basePrefix is None:
+                wFile.write(util.write_tokens(currentClusterInput, separator) + "\n")
+            else:
+                for inputItem in currentClusterInput:
+                    wFile.write(inputItem + separator + util.write_tokens(currentClusterBase, separator) + "\n")
         del currentClusterInput[:]
         del currentClusterBase[:]
     currentLshKey = lshKey
-    if itemId.startswith(basePrefix):
+    if basePrefix is not None and itemId.startswith(basePrefix):
         currentClusterBase.append(itemId)
     else:
         currentClusterInput.append(itemId)
