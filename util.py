@@ -17,13 +17,17 @@ def get_int_list(list1):
             ret.append(int(e))
     return ret
 
-def sort_csv_file(filename, column, delim):
+def compute_list_similarity(list1, list2):
+    similarity = float(len(set(list1) & set(list2)))/float(len(set(list1)))
+    return similarity
+
+def sort_csv_file(filename, columnArr, delim):
     #This a hack to fix a bug with sorting multiple files using this csvsort library.
     TMP_DIR = '.csvsort.%d' % os.getpid()
     if not os.path.exists(TMP_DIR):
         os.mkdir(TMP_DIR)
     from csvsort import csvsort
-    csvsort(filename, [column], delimiter=delim)
+    csvsort(filename, columnArr, delimiter=delim)
     try:
         for the_file in os.listdir(TMP_DIR):
             file_path = os.path.join(TMP_DIR, the_file)

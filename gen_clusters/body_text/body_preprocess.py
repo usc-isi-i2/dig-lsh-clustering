@@ -8,11 +8,12 @@ STOP_WORDS = ["a", "an", "and", "are", "as", "at", "be", "but", "by",
 "for", "if", "in", "into", "is", "it",
 "no", "not", "of", "on", "or", "such",
 "that", "the", "their", "then", "there", "these",
-"they", "this", "to", "was", "will", "with", "-", ";", ",", "_", "+", "/", "\\"]
+"they", "this", "to", "was", "will", "with", "-", ";", ",", "_", "+", "/", "\\",
+" ","*", "i", "am", "my", "me", "have"]
 
 
 def tokenize_input(input):
-    tokens = unicode(input).split()
+    tokens = unicode(input).lower().split()
     for token in tokens:
         if not token in STOP_WORDS:
             yield token

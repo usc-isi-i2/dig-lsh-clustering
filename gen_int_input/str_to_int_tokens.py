@@ -25,6 +25,7 @@ class Corpus(object):
         else:
             stream = open(self.filename)
         for line in stream:
+            line = line.decode("utf-8")
             all_tokens = line.lower().strip().split(self.separator)
             key = all_tokens[0].strip()
             tokens = all_tokens[1:]

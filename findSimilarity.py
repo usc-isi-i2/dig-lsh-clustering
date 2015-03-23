@@ -100,7 +100,7 @@ if baseFilename is not None:
     with open(tmp_combined_file, 'w') as file:
         input_lines = fileinput.input(file_list)
         file.writelines(input_lines)
-    util.sort_csv_file(tmp_combined_file, 0, '\t')
+    util.sort_csv_file(tmp_combined_file, [0], '\t')
     file=open(tmp_combined_file,'r')
 else:
     file=open(inputFilename,'r')

@@ -56,10 +56,14 @@ def parse_args():
             keyPrefix = sys.argv[arg_idx+1]
             continue
         if arg == "--sortOutput":
-            sortOutput = (sys.argv[arg_idx+1])
+            sortOutputStr = (sys.argv[arg_idx+1])
+            if sortOutputStr == "True":
+                sortOutput = True
             continue
         if arg == "--outputMinhash":
-            outputMinhash = (sys.argv[arg_idx+1])
+            outputMinhashStr = (sys.argv[arg_idx+1])
+            if outputMinhashStr == "True":
+                outputMinhash = True
             continue
 
 
@@ -74,6 +78,7 @@ args = parse_args()
 if inputFilename is None or outputFilename is None:
     die()
 
+print "numHashes:", numHashes, ", numItemsInBand:", numItemsInBand, ", dataType:", dataType, ", sortOutput:", sortOutput, ", inputType:", inputType
 hasher = None
 signer = None
 if dataType == "integer":
@@ -111,6 +116,7 @@ for line in file:
                 else:
                     minHashSig = tokens
 
+                #print "Key: ", key + ", minHash", minHashSig
                 if minHashSig is not None:
                     lshSig = list(hasher.hash(minHashSig))
                     minOut = ""
@@ -123,6 +129,6 @@ for line in file:
 file.close()
 wFile.close()
 
-if sortOutput is True:
+if sortOutput:
     print "Sorting output on LSH Keys.."
-    util.sort_csv_file(outputFilename, 0, separator)
+    util.sort_csv_file(outputFilename, [0], separator)
