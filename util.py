@@ -27,7 +27,7 @@ def sort_csv_file(filename, columnArr, delim):
     if not os.path.exists(TMP_DIR):
         os.mkdir(TMP_DIR)
     from csvsort import csvsort
-    csvsort(filename, columnArr, delimiter=delim)
+    csvsort(filename, columnArr, delimiter=delim, has_header=False)
     try:
         for the_file in os.listdir(TMP_DIR):
             file_path = os.path.join(TMP_DIR, the_file)
