@@ -26,14 +26,15 @@ class Corpus(object):
             stream = open(self.filename)
         for line in stream:
             line = line.decode("utf-8")
-            all_tokens = line.lower().strip().split(self.separator)
-            key = all_tokens[0].strip()
-            tokens = all_tokens[1:]
-            if self.key_dictionary:
-                self.key_dictionary.doc2bow([key], allow_update=True)
-            self.token_dictionary.doc2bow(tokens, allow_update=True)
-            #print line
-            yield self.get_line_representation(line)
+            idx = line.find(self.separator)
+            if idx != -1:
+                key = line[0:idx].strip()
+                tokens = line[idx+1].strip().lower().split(self.separator)
+                if self.key_dictionary:
+                    self.key_dictionary.doc2bow([key], allow_update=True)
+                self.token_dictionary.doc2bow(tokens, allow_update=True)
+                #print line
+                yield self.get_line_representation(line)
 
     def get_key_hashmap(self):
         return (self.key_dictionary.token2id)
