@@ -29,12 +29,12 @@ class Corpus(object):
             idx = line.find(self.separator)
             if idx != -1:
                 key = line[0:idx].strip()
-                tokens = line[idx+1].strip().lower().split(self.separator)
+                tokens = line[idx+1:].strip().lower().split(self.separator)
                 if self.key_dictionary:
                     self.key_dictionary.doc2bow([key], allow_update=True)
                 self.token_dictionary.doc2bow(tokens, allow_update=True)
                 #print line
-                yield self.get_line_representation(line)
+                yield self.get_line_representation(key, tokens)
 
     def get_key_hashmap(self):
         return (self.key_dictionary.token2id)
@@ -59,10 +59,7 @@ class Corpus(object):
         self.token_dictionary = corpora.Dictionary.load(filename)
         print self.token_dictionary
 
-    def get_line_representation(self, line):
-        all_tokens = line.lower().strip().split(self.separator)
-        key = all_tokens[0]
-        tokens = all_tokens[1:]
+    def get_line_representation(self, key, tokens):
         if self.key_dictionary:
             yield self.get_key_hashmap().get(key)
         else:
