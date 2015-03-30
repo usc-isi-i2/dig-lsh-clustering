@@ -78,7 +78,7 @@ args = parse_args()
 if inputFilename is None or outputFilename is None:
     die()
 
-print "numHashes:", numHashes, ", numItemsInBand:", numItemsInBand, ", dataType:", dataType, ", sortOutput:", sortOutput, ", inputType:", inputType
+print "Generate LSh Keys: numHashes:", numHashes, ", numItemsInBand:", numItemsInBand, ", dataType:", dataType, ", sortOutput:", sortOutput, ", inputType:", inputType
 hasher = None
 signer = None
 if dataType == "integer":
