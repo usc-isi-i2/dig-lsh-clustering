@@ -1,1 +1,26 @@
+1. MR job for tokenizing body text
 nohup hadoop jar /usr/lib/hadoop/contrib/hadoop-streaming-2.6.0.jar -libjars /test/karma-mr.jar -file /dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py -mapper /dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py -file /dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py -reducer /dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py -input /user/worker/coordinate/istr40m/devel01/* -output dig-40m-body-text -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
+
+
+2. MR job for computing similarities from the LSH-Key-Minhashes file
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=10 \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/cluster_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/cluster_reducer.py \
+    -input /user/ubuntu/dig-lsh/40m/lsh/* \
+    -output /user/ubuntu/dig-lsh/40m/sim &
+
+
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=10 \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
+    -input /user/ubuntu/dig-lsh/40m/sim/* \
+    -output /user/ubuntu/dig-lsh/40m/sim-dedup &
+
