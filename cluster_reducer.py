@@ -42,12 +42,11 @@ for line in sys.stdin:
         if current_lsh:
             # write result to STDOUT
             if len(itemKey_minhashes) > 1: 
-	    	print_similarity(itemKey_minhashes)
+                print_similarity(itemKey_minhashes)
             del itemKey_minhashes[:]
         current_lsh = lsh
         itemKey_minhashes.append(key_minhash)
 
-# do not forget to output the last word if needed!
 if len(itemKey_minhashes) > 1:
     print_similarity(itemKey_minhashes)
 

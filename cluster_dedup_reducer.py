@@ -21,3 +21,4 @@ for line in sys.stdin:
         print '%s\t%s\t%s' % (key1, key2, score)
         current_key = key
 
+exit(0)
