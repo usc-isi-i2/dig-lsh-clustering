@@ -15,8 +15,8 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
 
 
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
-    -D mapred.map.tasks=100 \
-    -D mapred.reduce.tasks=10 \
+    -D mapred.map.tasks=200 \
+    -D mapred.reduce.tasks=100 \
     -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
     -mapper /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
     -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
