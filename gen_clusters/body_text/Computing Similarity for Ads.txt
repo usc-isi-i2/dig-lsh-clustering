@@ -1,0 +1,70 @@
+1. Tokenize Body Text
+---------------------
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=100 \
+    -libjars /test/karma-mr.jar \
+    -file /dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
+    -mapper /dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
+    -file /dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
+    -reducer /dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
+    -input /user/worker/coordinate/istr40m/devel01/* \
+    -output /user/ubuntu/dig-lsh/40m/tokens \
+    -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
+
+2. Convert Tokens to Integer Tokens: Run gensim
+-----------------------------------------------
+cd gen_int_input
+nohup time python str_to_int_tokens.py --input /user/ubuntu/dig-lsh/40m/tokens --inputFS hdfs --output ads-40m-int-tokens.tsv --outputTokensFile ads-40m-tokens.dct &
+
+
+3. Generate LSH Keys
+---------------------
+nohup time python genLSH.py --input ads-40m-int-tokens.tsv --output ads-40m-lsh.tsv --numHashes 100 --numItemsInBand 10 --outputMinhash True &
+
+4. Sort the file
+----------------
+export TMPDIR=/mnt/dig-lsh/tmp
+sort ads-40m-lsh.tsv
+
+5.1. Upload to HDFS: /user/ubuntu/dig-lsh/40m/lsh
+
+5.2. Run the Clustering/SImilarity
+----------------------------------
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=100 \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/cluster_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/cluster_reducer.py \
+    -input /user/ubuntu/dig-lsh/40m/lsh/* \
+    -output /user/ubuntu/dig-lsh/40m/sim &
+
+6. Remove the duplicates
+------------------------
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=200 \
+    -D mapred.reduce.tasks=100 \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
+    -input /user/ubuntu/dig-lsh/40m/sim/* \
+    -output /user/ubuntu/dig-lsh/40m/similar_body &
+
+
+7. Convert the output to JSON for the Hue Workflow
+---------------------------------------------------
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=200 \
+    -D mapred.reduce.tasks=100 \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_reducer.py \
+    -input /user/ubuntu/dig-lsh/40m/similar_body/* \
+    -output /user/worker/ingest/istr40m/similar_body &
+
+
+
