@@ -2,7 +2,7 @@ __author__ = 'dipsy'
 from gensim import corpora
 import sys
 import subprocess
-
+import os
 
 class Corpus(object):
     def __init__(self, filename, filesystem, separator, convertKeys):
@@ -20,23 +20,30 @@ class Corpus(object):
         print "Start the conversion"
         filenames = self.filename.split(",")
         for filename in filenames:
-            stream = None
+            stream_arr = []
             if inputFileSystem == "hdfs":
                 cat = subprocess.Popen(["hadoop", "fs", "-cat", filename], stdout=subprocess.PIPE)
                 stream = cat.stdout
+                stream_arr.append(stream)
             else:
-                stream = open(filename)
-            for line in stream:
-                line = line.decode("utf-8")
-                idx = line.find(self.separator)
-                if idx != -1:
-                    key = line[0:idx].strip()
-                    tokens = line[idx+1:].strip().lower().split(self.separator)
-                    if self.key_dictionary:
-                        self.key_dictionary.doc2bow([key], allow_update=True)
-                    self.token_dictionary.doc2bow(tokens, allow_update=True)
-                    #print line
-                    yield self.get_line_representation(key, tokens)
+                if os.path.isdir(filename):
+                    stream_arr = os.listdir(filename)
+                else:
+                    stream = open(filename)
+                    stream_arr.append(stream)
+
+            for stream in stream_arr:
+                for line in stream:
+                    line = line.decode("utf-8")
+                    idx = line.find(self.separator)
+                    if idx != -1:
+                        key = line[0:idx].strip()
+                        tokens = line[idx+1:].strip().lower().split(self.separator)
+                        if self.key_dictionary:
+                            self.key_dictionary.doc2bow([key], allow_update=True)
+                        self.token_dictionary.doc2bow(tokens, allow_update=True)
+                        #print line
+                        yield self.get_line_representation(key, tokens)
 
     def get_key_hashmap(self):
         return (self.key_dictionary.token2id)
