@@ -4,18 +4,16 @@ import util
 import os
 from hdfs.hfile import Hfile
 
+
 class ClusterGenerator(object):
 
     def __init__(self):
         self.separator = "\t"
-        self.scorethreshold = 0.0
-        self.outputFilenames = []
-        self.numRowsPerFile = 1000000
+        self.score_threshold = 0.0
 
-
-    def __openFileForWrite(self, filehandle):
-        if filehandle.startswith("hdfs://"):
-            path = filehandle[7:]
+    def __open_file_for_write(self, file_handle):
+        if file_handle.startswith("hdfs://"):
+            path = file_handle[7:]
             idx = path.find(":")
             host = path[0:idx]
             path = path[idx+1:]
@@ -26,41 +24,29 @@ class ClusterGenerator(object):
             sys.stdout.flush()
             return Hfile(host, port, filename, mode='w')
         else:
-            print "Open file: ", filehandle
+            print "Open file: ", file_handle
             sys.stdout.flush()
-            return open(filehandle, 'w')
+            return open(file_handle, 'w')
 
-    def __generateNextOutputfile(self, outputFilename):
-        file_idx = len(self.outputFilenames)
-        out_filename = outputFilename + "." + str(file_idx)
-        self.outputFilenames.append(out_filename)
-        out = self.__openFileForWrite(out_filename)
-        return out
+    def run(self, input_filename, output_filename, p_separator, compute_similarity, p_score_threshold):
+        self.separator = p_separator
+        self.score_threshold = p_score_threshold
 
-
-    def run(self, inputFilename, outputFilename, separator, computeSimilarity, scoreThreshold):
-        self.separator = separator
-        self.scorethreshold = scoreThreshold
-
-        itemKey_minhashes = []
-        lsh_key = None
-        lsh_band = None
+        key_hashes = []
         prev_lsh_key = None
         prev_lsh_band = None
 
-        file = open(inputFilename, 'r')
-        del self.outputFilenames[:]
+        in_file = open(input_filename, 'r')
 
-        out = self.__generateNextOutputfile(outputFilename)
-        num_lines = 0
-        for line in file:
+        out = self.__open_file_for_write(output_filename)
+        for line in in_file:
             line = line.strip()
             if len(line) > 0:
-                lineTokens = line.split(separator)
-                lsh_key = lineTokens[0]
+                line_tokens = line.split(separator)
+                lsh_key = line_tokens[0]
                 lsh_band = lsh_key[0:3]
 
-                itemKey_minhash = lineTokens[1:]
+                key_hash = line_tokens[1:]
 
                 if prev_lsh_key is None:
                     prev_lsh_key = lsh_key
@@ -69,14 +55,12 @@ class ClusterGenerator(object):
                     sys.stdout.flush()
 
                 if prev_lsh_key != lsh_key:
-                    if len(itemKey_minhashes) > 1:
-                        if computeSimilarity:
-                            num_lines_written = self.__computeSimilarity(itemKey_minhashes, out, lsh_band)
-                            num_lines += num_lines_written
+                    if len(key_hashes) > 1:
+                        if compute_similarity:
+                            self.__compute_similarity(key_hashes, out, lsh_band)
                         else:
-                            self.__writeClusters(itemKey_minhashes, out)
-                            num_lines += 1
-                    del itemKey_minhashes[:]
+                            self.__write_clusters(key_hashes, out)
+                    del key_hashes[:]
 
                 if prev_lsh_band != lsh_band:
                     print "Start clustering for Band:", lsh_band
@@ -85,65 +69,51 @@ class ClusterGenerator(object):
                 prev_lsh_key = lsh_key
                 prev_lsh_band = lsh_band
 
-                itemKey_minhashes.append(itemKey_minhash)
-                if num_lines > self.numRowsPerFile:
-                    num_lines = 0
-                    out.close()
-                    out = self.__generateNextOutputfile(outputFilename)
+                key_hashes.append(key_hash)
 
-        file.close()
+        in_file.close()
         out.close()
         print "Done computing similarities"
         sys.stdout.flush()
 
-    def __writeClusters(self, keyHashesArray, outputFile):
-        keyArr = []
-        for keyArr1 in keyHashesArray:
-            key1 = keyArr1[0]
-            keyArr.append(key1)
+    def __write_clusters(self, key_hashes_array, output_file):
+        key_arr = []
+        for key_arr1 in key_hashes_array:
+            key1 = key_arr1[0]
+            key_arr.append(key1)
 
-        outputFile.write(util.write_tokens(keyArr, self.separator) + "\n")
+        output_file.write(util.write_tokens(key_arr, self.separator) + "\n")
 
-
-    def __computeSimilarity(self, keyHashesArray, outputFile, lsh_band):
+    def __compute_similarity(self, key_hashes_array, output_file, lsh_band):
         #print "Compute Similarity between: ", len(keyHashesArray), " items"
-        numLines = 0
-        for keyArr1 in keyHashesArray:
+        num_lines = 0
+        for keyArr1 in key_hashes_array:
             key1 = keyArr1[0]
-            minarr1 = keyArr1[1:]
+            min_arr1 = keyArr1[1:]
             #print "Start: ", key1
-            for keyArr2 in keyHashesArray:
+            for keyArr2 in key_hashes_array:
                 key2 = keyArr2[0]
                 if key1 < key2:
-                    minarr2 = keyArr2[1:]
-                    if minarr1 != minarr2:
-                        score = util.compute_list_similarity(minarr1, minarr2)
+                    min_arr2 = keyArr2[1:]
+                    if min_arr1 != min_arr2:
+                        score = util.compute_list_similarity(min_arr1, min_arr2)
                     else:
                         score = 1.0
-                    if score >= self.scorethreshold:
+                    if score >= self.score_threshold:
                         if score < 1.0 or lsh_band == "000":
-                            outputFile.write(key1 + self.separator + key2 + self.separator + str(score) + "\n")
-                            numLines += 1
-        return numLines
+                            output_file.write(key1 + self.separator + key2 + self.separator + str(score) + "\n")
+                            num_lines += 1
+        return num_lines
 
+    def remove_duplicates(self, filename):
+        util.sort_csv_file(filename, [0, 1], self.separator)
 
-    def getOutputfilenames(self):
-        return self.outputFilenames
-
-
-    def setNumRowsPerFile(self, num):
-        self.numRowsPerFile = num
-
-
-    def removeDuplicates(self, filename):
-        util.sort_csv_file(filename, [0,1], self.separator)
-
-        file = open(filename, 'r')
-        tmpFile = open(filename + ".tmp", 'w')
+        file_handle = open(filename, 'r')
+        tmp_file = open(filename + ".tmp", 'w')
         prev_line = None
-        for line in file:
+        for line in file_handle:
             if prev_line is None or line != prev_line:
-                tmpFile.write(line)
+                tmp_file.write(line)
             prev_line = line
 
         os.remove(filename)
@@ -156,6 +126,7 @@ dataType = "integer"
 computeSimilarity = True
 scoreThreshold = 0.0
 removeDuplicates = True
+
 
 def parse_args():
     global inputFilename
@@ -195,7 +166,7 @@ def die():
     print "Usage: genClusters.py --input <input filename> --output <output filename> [--separator <sep=\\t>] [--computeSimilarity <True=default|False>] [--threshold <threshold for similarity score to be in one cluster>]"
     exit(1)
 
-args = parse_args()
+parse_args()
 if inputFilename is None or outputFilename is None:
     die()
 
@@ -205,8 +176,7 @@ clusterGen = ClusterGenerator()
 
 clusterGen.run(inputFilename, outputFilename, separator, computeSimilarity, scoreThreshold)
 if removeDuplicates:
-    for filename in clusterGen.getOutputfilenames():
-        clusterGen.removeDuplicates(filename)
+    clusterGen.remove_duplicates(inputFilename)
 
 
 

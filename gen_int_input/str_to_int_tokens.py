@@ -18,23 +18,25 @@ class Corpus(object):
 
     def __iter__(self):
         print "Start the conversion"
-        stream = None
-        if inputFileSystem == "hdfs":
-            cat = subprocess.Popen(["hadoop", "fs", "-cat", self.filename], stdout=subprocess.PIPE)
-            stream = cat.stdout
-        else:
-            stream = open(self.filename)
-        for line in stream:
-            line = line.decode("utf-8")
-            idx = line.find(self.separator)
-            if idx != -1:
-                key = line[0:idx].strip()
-                tokens = line[idx+1:].strip().lower().split(self.separator)
-                if self.key_dictionary:
-                    self.key_dictionary.doc2bow([key], allow_update=True)
-                self.token_dictionary.doc2bow(tokens, allow_update=True)
-                #print line
-                yield self.get_line_representation(key, tokens)
+        filenames = self.filename.split(",")
+        for filename in filenames:
+            stream = None
+            if inputFileSystem == "hdfs":
+                cat = subprocess.Popen(["hadoop", "fs", "-cat", filename], stdout=subprocess.PIPE)
+                stream = cat.stdout
+            else:
+                stream = open(filename)
+            for line in stream:
+                line = line.decode("utf-8")
+                idx = line.find(self.separator)
+                if idx != -1:
+                    key = line[0:idx].strip()
+                    tokens = line[idx+1:].strip().lower().split(self.separator)
+                    if self.key_dictionary:
+                        self.key_dictionary.doc2bow([key], allow_update=True)
+                    self.token_dictionary.doc2bow(tokens, allow_update=True)
+                    #print line
+                    yield self.get_line_representation(key, tokens)
 
     def get_key_hashmap(self):
         return (self.key_dictionary.token2id)
