@@ -8,7 +8,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -mapper /dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
     -file /dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
     -reducer /dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
-    -input /user/worker/coordinate/istr40m/devel01/* \
+        -input /user/worker/coordinate/istr40m/devel01/* \
     -output /user/ubuntu/dig-lsh/40m/tokens \
     -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
 
