@@ -14,6 +14,8 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
 
 2. Convert Tokens to Integer Tokens: Run gensim
 -----------------------------------------------
+#to activate python libraries , in case there is a library not found exception
+source env/bin/activate
 cd gen_int_input
 nohup time python str_to_int_tokens.py --input /user/ubuntu/dig-lsh/40m/tokens/part-0000 --inputFS hdfs --output ads-40m-int-tokens.tsv --outputTokensFile ads-40m-tokens.dct &
 
