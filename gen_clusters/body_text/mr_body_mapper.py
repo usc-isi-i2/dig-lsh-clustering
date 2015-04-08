@@ -2,6 +2,8 @@
 
 import sys
 import json
+import traceback
+import re
 
 STOP_WORDS = ["a", "an", "and", "are", "as", "at", "be", "but", "by",
 "for", "if", "in", "into", "is", "it",
@@ -9,6 +11,9 @@ STOP_WORDS = ["a", "an", "and", "are", "as", "at", "be", "but", "by",
 "that", "the", "their", "then", "there", "these",
 "they", "this", "to", "was", "will", "with", "-", ";", ",", "_", "+", "/", "\\"]
 
+def asciiChars(x):
+    "Remove non-ascii chars in x replacing consecutive ones with a single space"
+    return re.sub(r'[^\x00-\x7F]+', ' ', x)
 
 def tokenize_input(input):
     tokens = unicode(input).split()
@@ -34,10 +39,23 @@ for line in sys.stdin:
         value =  line[idx+1:]
         try:
             body_json = json.loads(value, encoding='utf-8')
-            bodyText = body_json["hasBodyPart"]["text"]
-            tokens = tokenize_input(bodyText)
-            tokensStr = write_tokens(tokens, "\t")
-            print '%s\t%s' % (key, tokensStr)
+            if body_json.get("hasBodyPart"):
+		bodyText = body_json["hasBodyPart"]["text"]
+		if type(bodyText) is str:
+			bodyText = bodyText.strip()
+		else:
+			bodyText = " ".join(bodyText).strip()
+		if len(bodyText) > 0:
+	    		#bodyText = asciiChars(bodyText)
+			tokens = tokenize_input(bodyText)
+            		tokensStr = write_tokens(tokens, "\t")
+            		print '%s\t%s' % (key, tokensStr.encode('utf-8'))
         except:
-            pass
+	    	exc_type, exc_value, exc_traceback = sys.exc_info()
+	    	lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+		sys.stderr.write("Error in Body Mapper:" + str(lines) + "\n")
+		sys.stderr.write("Error was caused by data:" + value + "\n")
+            	pass
+
+exit(0)
 
