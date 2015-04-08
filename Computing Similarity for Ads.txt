@@ -97,27 +97,3 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -output /user/worker/ingest/istr50m/similar_body &
 
 
-
-nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
-    -D mapred.map.tasks=100 \
-    -D mapred.reduce.tasks=1 \
-    -libjars dig-lsh-clustering/karma-mr.jar \
-    -file dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
-    -mapper dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
-    -file dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
-    -reducer dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
-        -input /user/worker/cleaner/2015-04-01/pilot/pilot* \
-    -output /user/ubuntu/dig-lsh/50m \
-    -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
-
-nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
-    -D mapred.map.tasks=100 \
-    -D mapred.reduce.tasks=1 \
-    -libjars dig-lsh-clustering/karma-mr.jar \
-    -file dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
-    -mapper dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
-    -file dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
-    -reducer dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
-        -input /user/worker/cleaner/incremental/pilot/refactor/* \
-    -output /user/ubuntu/dig-lsh/50m-incremental \
-    -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
