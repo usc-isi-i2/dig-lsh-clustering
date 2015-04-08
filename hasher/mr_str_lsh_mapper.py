@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import hashlib
 
 numHashes = 100
 numItemsInBand = 10
