@@ -1,6 +1,6 @@
 1. Tokenize Body Text
 ---------------------
-#Tokenize the 50m dump
+#Tokenize the 50m dump - 51 mins @DT
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=1 \
@@ -22,7 +22,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -mapper dig-lsh-clustering/tokenizer/body_text/mr_body_mapper.py \
     -file dig-lsh-clustering/tokenizer/body_text/mr_body_reducer.py \
     -reducer dig-lsh-clustering/tokenizer/body_text/mr_body_reducer.py \
-    -input /user/worker/cleaner/incremental/pilot/* \
+    -input /user/worker/cleaner/incremental/pilot/refactor/* \
     -output /user/ubuntu/dig-lsh/50m/tokens/2 \
     -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
 

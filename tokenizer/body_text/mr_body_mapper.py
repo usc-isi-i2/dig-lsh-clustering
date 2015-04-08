@@ -6,10 +6,10 @@ import traceback
 import re
 
 STOP_WORDS = ["a", "an", "and", "are", "as", "at", "be", "but", "by",
-"for", "if", "in", "into", "is", "it",
-"no", "not", "of", "on", "or", "such",
-"that", "the", "their", "then", "there", "these",
-"they", "this", "to", "was", "will", "with", "-", ";", ",", "_", "+", "/", "\\"]
+              "for", "if", "in", "into", "is", "it",
+              "no", "not", "of", "on", "or", "such",
+              "that", "the", "their", "then", "there", "these",
+              "they", "this", "to", "was", "will", "with", "-", ";", ",", "_", "+", "/", "\\"]
 
 def asciiChars(x):
     "Remove non-ascii chars in x replacing consecutive ones with a single space"
@@ -36,26 +36,26 @@ for line in sys.stdin:
     idx = line.find("\t")
     if idx != -1:
         key = line[0:idx]
-        value =  line[idx+1:]
+        value = line[idx+1:]
         try:
             body_json = json.loads(value, encoding='utf-8')
             if body_json.get("hasBodyPart"):
-		bodyText = body_json["hasBodyPart"]["text"]
-		if type(bodyText) is str:
-			bodyText = bodyText.strip()
-		else:
-			bodyText = " ".join(bodyText).strip()
-		if len(bodyText) > 0:
-	    		#bodyText = asciiChars(bodyText)
-			tokens = tokenize_input(bodyText)
-            		tokensStr = write_tokens(tokens, "\t")
-            		print '%s\t%s' % (key, tokensStr.encode('utf-8'))
+                bodyText = body_json["hasBodyPart"]["text"]
+                if type(bodyText) is str:
+                    bodyText = bodyText.strip()
+                else:
+                    bodyText = " ".join(bodyText).strip()
+                if len(bodyText) > 0:
+                    #bodyText = asciiChars(bodyText)
+                    tokens = tokenize_input(bodyText)
+                tokensStr = write_tokens(tokens, "\t")
+                print '%s\t%s' % (key, tokensStr.encode('utf-8'))
         except:
-	    	exc_type, exc_value, exc_traceback = sys.exc_info()
-	    	lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-		sys.stderr.write("Error in Body Mapper:" + str(lines) + "\n")
-		sys.stderr.write("Error was caused by data:" + value + "\n")
-            	pass
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            sys.stderr.write("Error in Body Mapper:" + str(lines) + "\n")
+            sys.stderr.write("Error was caused by data:" + value + "\n")
+            pass
 
 exit(0)
 
