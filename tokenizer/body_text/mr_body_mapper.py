@@ -41,15 +41,15 @@ for line in sys.stdin:
             body_json = json.loads(value, encoding='utf-8')
             if body_json.get("hasBodyPart"):
                 bodyText = body_json["hasBodyPart"]["text"]
-                if type(bodyText) is str:
+                if type(bodyText) is str or type(bodyText) is unicode:
                     bodyText = bodyText.strip()
                 else:
                     bodyText = " ".join(bodyText).strip()
                 if len(bodyText) > 0:
                     #bodyText = asciiChars(bodyText)
                     tokens = tokenize_input(bodyText)
-                tokensStr = write_tokens(tokens, "\t")
-                print '%s\t%s' % (key, tokensStr.encode('utf-8'))
+                    tokensStr = write_tokens(tokens, "\t")
+                    print '%s\t%s' % (key, tokensStr.encode('utf-8'))
         except:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
