@@ -1,6 +1,6 @@
 1. Tokenize Body Text
 ---------------------
-#Tokenize the 50m dump - 51 mins @DT
+#Tokenize the 50m dump - 30 mins @DT
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=1 \
@@ -13,7 +13,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -output /user/ubuntu/dig-lsh/50m/tokens/1 \
     -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
 
-#Tokenize the incrementals
+#Tokenize the incrementals - 4 mins @DT
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=1 \
@@ -46,8 +46,6 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=100 \
     -file /home/ubuntu/dig-lsh-clustering/hasher/mr_str_lsh_mapper.py \
-    -file /home/ubuntu/dig-lsh-clustering/hasher/lsh/lsh.py \
-    -file /home/ubuntu/dig-lsh-clustering/hasher/lsh/unionfind.py \
     -mapper /home/ubuntu/dig-lsh-clustering/hasher/mr_str_lsh_mapper.py \
     -reducer org.apache.hadoop.mapred.lib.IdentityReducer \
     -input /user/ubuntu/dig-lsh/50m/tokens/* \
