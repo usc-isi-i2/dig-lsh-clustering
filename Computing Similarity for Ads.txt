@@ -64,10 +64,10 @@ sort ads-40m-lsh.tsv
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=100 \
-    -file /home/ubuntu/dig-lsh-clustering/cluster_mapper.py \
-    -mapper /home/ubuntu/dig-lsh-clustering/cluster_mapper.py \
-    -file /home/ubuntu/dig-lsh-clustering/cluster_reducer.py \
-    -reducer /home/ubuntu/dig-lsh-clustering/cluster_reducer.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/clusterer/cluster_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/clusterer/cluster_reducer.py \
     -input /user/ubuntu/dig-lsh/50m/lsh/* \
     -output /user/ubuntu/dig-lsh/50m/sim &
 
@@ -76,10 +76,10 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=200 \
     -D mapred.reduce.tasks=100 \
-    -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
-    -mapper /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
-    -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
-    -reducer /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_dedup_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/clusterer/cluster_dedup_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_dedup_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/clusterer/cluster_dedup_reducer.py \
     -input /user/ubuntu/dig-lsh/50m/sim/* \
     -output /user/ubuntu/dig-lsh/50m/sim-nodup &
 
@@ -89,10 +89,10 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=200 \
     -D mapred.reduce.tasks=100 \
-    -file /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_mapper.py \
-    -mapper /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_mapper.py \
-    -file /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_reducer.py \
-    -reducer /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_reducer.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_reducer.py \
     -input /user/ubuntu/dig-lsh/50m/sim-nodup/* \
     -output /user/worker/ingest/istr50m/similar_body &
 
