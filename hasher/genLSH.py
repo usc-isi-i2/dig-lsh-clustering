@@ -3,8 +3,7 @@ import util
 __author__ = 'dipsy'
 
 import sys
-from lsh.lsh import LSH, IntegerLSH, MinHashSignature, IntegerMinHashSignature
-import os
+from hasher.lsh.lsh import LSH, IntegerLSH, MinHashSignature, IntegerMinHashSignature
 
 inputFilename = None
 inputType = "tokens"

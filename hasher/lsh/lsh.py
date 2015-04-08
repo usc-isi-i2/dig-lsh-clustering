@@ -5,9 +5,9 @@ Algorithms based on 'Mining of Massive Datasets'
 """
 
 from collections import defaultdict
-
-from unionfind import UnionFind
 import hashlib
+
+from hasher.lsh.unionfind import UnionFind
 #import numpy
 
 class Signature(object):

@@ -1,16 +1,32 @@
 1. Tokenize Body Text
 ---------------------
+#Tokenize the 50m dump
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=1 \
-    -libjars /test/karma-mr.jar \
-    -file /dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
-    -mapper /dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
-    -file /dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
-    -reducer /dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
-        -input /user/worker/coordinate/istr40m/devel01/* \
-    -output /user/ubuntu/dig-lsh/40m/tokens \
+    -libjars dig-lsh-clustering/karma-mr.jar \
+    -file dig-lsh-clustering/tokenizer/body_text/mr_body_mapper.py \
+    -mapper dig-lsh-clustering/tokenizer/body_text/mr_body_mapper.py \
+    -file dig-lsh-clustering/tokenizer/body_text/mr_body_reducer.py \
+    -reducer dig-lsh-clustering/tokenizer/body_text/mr_body_reducer.py \
+    -input /user/worker/cleaner/2015-04-01/pilot/* \
+    -output /user/ubuntu/dig-lsh/50m/tokens/1 \
     -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
+
+#Tokenize the incrementals
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=1 \
+    -libjars dig-lsh-clustering/karma-mr.jar \
+    -file dig-lsh-clustering/tokenizer/body_text/mr_body_mapper.py \
+    -mapper dig-lsh-clustering/tokenizer/body_text/mr_body_mapper.py \
+    -file dig-lsh-clustering/tokenizer/body_text/mr_body_reducer.py \
+    -reducer dig-lsh-clustering/tokenizer/body_text/mr_body_reducer.py \
+    -input /user/worker/cleaner/incremental/pilot/* \
+    -output /user/ubuntu/dig-lsh/50m/tokens/2 \
+    -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
+
+
 
 2. Convert Tokens to Integer Tokens: Run gensim
 -----------------------------------------------
@@ -22,14 +38,28 @@ nohup time python str_to_int_tokens.py --input /user/ubuntu/dig-lsh/40m/tokens/p
 
 3. Generate LSH Keys
 ---------------------
+cd hasher
 nohup time python genLSH.py --input ads-40m-int-tokens.tsv --output ads-40m-lsh.tsv --numHashes 100 --numItemsInBand 10 --outputMinhash True &
 
-4. Sort the file
+or run the MR job:
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=100 \
+    -file /home/ubuntu/dig-lsh-clustering/hasher/mr_str_lsh_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/hasher/lsh/lsh.py \
+    -file /home/ubuntu/dig-lsh-clustering/hasher/lsh/unionfind.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/hasher/mr_str_lsh_mapper.py \
+    -reducer org.apache.hadoop.mapred.lib.IdentityReducer \
+    -input /user/ubuntu/dig-lsh/50m/tokens/* \
+    -output /user/ubuntu/dig-lsh/50m/lsh &
+
+
+4. Sort the file, needed only if not running step 3 as MR
 ----------------
 export TMPDIR=/mnt/dig-lsh/tmp
 sort ads-40m-lsh.tsv
 
-5.1. Upload to HDFS: /user/ubuntu/dig-lsh/40m/lsh
+5.1. Upload to HDFS: /user/ubuntu/dig-lsh/40m/lsh, needed only if not running 3 as MR
 
 5.2. Run the Clustering/SImilarity
 ----------------------------------
@@ -40,8 +70,8 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -mapper /home/ubuntu/dig-lsh-clustering/cluster_mapper.py \
     -file /home/ubuntu/dig-lsh-clustering/cluster_reducer.py \
     -reducer /home/ubuntu/dig-lsh-clustering/cluster_reducer.py \
-    -input /user/ubuntu/dig-lsh/40m/lsh/* \
-    -output /user/ubuntu/dig-lsh/40m/sim &
+    -input /user/ubuntu/dig-lsh/50m/lsh/* \
+    -output /user/ubuntu/dig-lsh/50m/sim &
 
 6. Remove the duplicates
 ------------------------
@@ -52,8 +82,8 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -mapper /home/ubuntu/dig-lsh-clustering/cluster_dedup_mapper.py \
     -file /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
     -reducer /home/ubuntu/dig-lsh-clustering/cluster_dedup_reducer.py \
-    -input /user/ubuntu/dig-lsh/40m/sim/* \
-    -output /user/ubuntu/dig-lsh/40m/similar_body &
+    -input /user/ubuntu/dig-lsh/50m/sim/* \
+    -output /user/ubuntu/dig-lsh/50m/sim-nodup &
 
 
 7. Convert the output to JSON for the Hue Workflow
@@ -65,8 +95,31 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -mapper /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_mapper.py \
     -file /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_reducer.py \
     -reducer /home/ubuntu/dig-lsh-clustering/cluster_jsonoutput_reducer.py \
-    -input /user/ubuntu/dig-lsh/40m/similar_body/* \
-    -output /user/worker/ingest/istr40m/similar_body &
+    -input /user/ubuntu/dig-lsh/50m/sim-nodup/* \
+    -output /user/worker/ingest/istr50m/similar_body &
 
 
 
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=1 \
+    -libjars dig-lsh-clustering/karma-mr.jar \
+    -file dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
+    -mapper dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
+    -file dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
+    -reducer dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
+        -input /user/worker/cleaner/2015-04-01/pilot/pilot* \
+    -output /user/ubuntu/dig-lsh/50m \
+    -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
+
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=1 \
+    -libjars dig-lsh-clustering/karma-mr.jar \
+    -file dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
+    -mapper dig-lsh-clustering/gen_clusters/body_text/mr_body_mapper.py \
+    -file dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
+    -reducer dig-lsh-clustering/gen_clusters/body_text/mr_body_reducer.py \
+        -input /user/worker/cleaner/incremental/pilot/refactor/* \
+    -output /user/ubuntu/dig-lsh/50m-incremental \
+    -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &

@@ -1,8 +1,10 @@
 __author__ = 'dipsy'
 
-from lsh.lsh import Cluster, IntegerCluster
 import sys
 import json
+
+from hasher.lsh.lsh import Cluster, IntegerCluster
+
 
 inputFilename = None
 outputFilename = None

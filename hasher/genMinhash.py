@@ -3,7 +3,7 @@ import util
 __author__ = 'dipsy'
 
 import sys
-from lsh.lsh import MinHashSignature, IntegerMinHashSignature
+from hasher.lsh.lsh import MinHashSignature, IntegerMinHashSignature
 
 inputFilename = None
 outputFilename = None
