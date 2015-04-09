@@ -20,7 +20,7 @@ class Corpus(object):
         print "Start the conversion"
         filenames = self.filename.split(",")
         for filename in filenames:
-	    print "File: ", filename
+            print "File: ", filename
             stream_arr = []
             if inputFileSystem == "hdfs":
                 cat = subprocess.Popen(["hadoop", "fs", "-cat", filename], stdout=subprocess.PIPE)
@@ -28,19 +28,19 @@ class Corpus(object):
                 stream_arr.append(stream)
             else:
                 if os.path.isdir(filename):
-		    print "This is a directory, get all files"
+                    print "This is a directory, get all files"
                     filename_arr = os.listdir(filename)
-		    for inner_filename in filename_arr:
-			full_name = os.path.join(filename, inner_filename)
-			stream = open(full_name)
-			stream_arr.append(stream)
+                    for inner_filename in filename_arr:
+                        full_name = os.path.join(filename, inner_filename)
+                        stream = open(full_name)
+                        stream_arr.append(stream)
                 else:
-		    print "INput is a file"
+                    print "INput is a file"
                     stream = open(filename)
                     stream_arr.append(stream)
 
             for stream in stream_arr:
-		print "Got stream:", stream
+                print "Got stream:", stream
                 for line in stream:
                     line = line.decode("utf-8")
                     idx = line.find(self.separator)

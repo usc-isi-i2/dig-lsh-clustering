@@ -41,7 +41,7 @@ nohup time python str_to_int_tokens.py --input /user/ubuntu/dig-lsh/40m/tokens/p
 cd hasher
 nohup time python genLSH.py --input ads-40m-int-tokens.tsv --output ads-40m-lsh.tsv --numHashes 100 --numItemsInBand 10 --outputMinhash True &
 
-or run the MR job:
+or run the MR job: 1hrs, 38mins@DT
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=100 \

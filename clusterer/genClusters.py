@@ -176,7 +176,7 @@ clusterGen = ClusterGenerator()
 
 clusterGen.run(inputFilename, outputFilename, separator, computeSimilarity, scoreThreshold)
 if removeDuplicates:
-    clusterGen.remove_duplicates(inputFilename)
+    clusterGen.remove_duplicates(outputFilename)
 
 
 
