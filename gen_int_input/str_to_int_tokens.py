@@ -136,7 +136,7 @@ def write_tokens(tokens, sep):
     outStr = ""
     usep = ""
     for token in tokens:
-        outStr = outStr + usep + str(token)
+        outStr = outStr.encode("ascii",'ignore') + usep.encode("ascii","ignore") + str(token if isinstance(token,int) else token.encode("ascii","ignore"))
         usep = sep
     return outStr
 
