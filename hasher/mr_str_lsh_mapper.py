@@ -108,6 +108,6 @@ for line in sys.stdin:
 
                 for i in range(0, numBands):
                     print (str(i).zfill(3) + ":" + lshSig[i] + separator +
-                           keyPrefix + key + separator + minOut + "\n")
+                           keyPrefix + key + separator + minOut)
 
 exit(0)
