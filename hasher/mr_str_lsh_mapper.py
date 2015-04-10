@@ -104,9 +104,10 @@ for line in sys.stdin:
                 #print "Adding tokens: " + str(tokens)
                 minHashSig = signer.sign(tokens)
                 lshSig = list(hasher.hash(minHashSig))
-                minOut = separator + write_tokens(minHashSig, separator)
+                minOut = ''.join(minHashSig)
 
                 for i in range(0, numBands):
-                    print (str(i).zfill(3) + ":" + lshSig[i] + separator + keyPrefix + key + minOut + "\n")
+                    print (str(i).zfill(3) + ":" + lshSig[i] + separator +
+                           keyPrefix + key + separator + minOut + "\n")
 
 exit(0)
