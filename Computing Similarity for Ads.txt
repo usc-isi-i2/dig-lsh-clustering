@@ -1,5 +1,5 @@
-1. Tokenize Body Text
----------------------
+1. Tokenize Body Text - 35 mins @DT
+------------------------------------
 #Tokenize the 50m dump - 30 mins @DT
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
@@ -26,40 +26,20 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -output /user/ubuntu/dig-lsh/50m/tokens/2 \
     -inputformat edu.isi.karma.mapreduce.inputformat.SequenceFileAsJSONInputBatchFormat &
 
-
-
-2. Convert Tokens to Integer Tokens: Run gensim
------------------------------------------------
-#to activate python libraries , in case there is a library not found exception
-source env/bin/activate
-cd gen_int_input
-nohup time python str_to_int_tokens.py --input /user/ubuntu/dig-lsh/40m/tokens/part-0000 --inputFS hdfs --output ads-40m-int-tokens.tsv --outputTokensFile ads-40m-tokens.dct &
-
-
-3. Generate LSH Keys
----------------------
-cd hasher
-nohup time python genLSH.py --input ads-40m-int-tokens.tsv --output ads-40m-lsh.tsv --numHashes 100 --numItemsInBand 10 --outputMinhash True &
-
-or run the MR job: 1hrs, 38mins@DT
+2. Generate LSH Keys - 1hrs, 38mins@DT
+---------------------------------------
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=100 \
     -file /home/ubuntu/dig-lsh-clustering/hasher/mr_str_lsh_mapper.py \
     -mapper /home/ubuntu/dig-lsh-clustering/hasher/mr_str_lsh_mapper.py \
-    -reducer org.apache.hadoop.mapred.lib.IdentityReducer \
+    -file /home/ubuntu/dig-lsh-clustering/hasher/mr_lsh_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/hasher/mr_lsh_reducer.py \
     -input /user/ubuntu/dig-lsh/50m/tokens/* \
     -output /user/ubuntu/dig-lsh/50m/lsh &
 
 
-4. Sort the file, needed only if not running step 3 as MR
-----------------
-export TMPDIR=/mnt/dig-lsh/tmp
-sort ads-40m-lsh.tsv
-
-5.1. Upload to HDFS: /user/ubuntu/dig-lsh/40m/lsh, needed only if not running 3 as MR
-
-5.2. Run the Clustering/SImilarity
+3. Run the Clustering/SImilarity
 ----------------------------------
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
