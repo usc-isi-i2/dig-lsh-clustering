@@ -6,8 +6,7 @@ import sys
 for line in sys.stdin:
     # remove leading and trailing whitespace
     line = line.strip()
-    parts = line.split("\t")
-    key = parts[0] + "$$$$" + parts[1]
-    value = parts[2]
-    print key + "\t" + value
+    (x, y, rest) = line.split("\t", 2)
+    key = x + "$$$$" + y
+    print key + "\t" + rest
 

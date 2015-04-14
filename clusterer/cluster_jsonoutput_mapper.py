@@ -6,8 +6,6 @@ import sys
 for line in sys.stdin:
     # remove leading and trailing whitespace
     line = line.strip()
-    idx = line.find("\t")
-    if idx != -1:
-        print line
+    print line
 
 

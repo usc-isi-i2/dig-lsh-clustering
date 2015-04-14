@@ -27,9 +27,10 @@ for line in sys.stdin:
         if current_key:
             if len(cluster_ids) > 0:
                 print_output(current_key, cluster_ids)
-            del cluster_ids[:]
+            cluster_ids.clear()
+
         current_key = key
-        cluster_id.add(cluster_id)
+        cluster_ids.add(cluster_id)
 
 if len(cluster_ids) > 0:
     print_output(current_key, cluster_ids)

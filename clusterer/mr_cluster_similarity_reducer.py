@@ -9,14 +9,14 @@ cluster_counts = {}
 
 
 def compute_list_similarity(str1, str2):
-    similarity = float(len(str1 & str2))/float(len(str1))
+    similarity = float(len(set(str1) & set(str2)))/float(len(set(str1)))
     return similarity
 
 
-def print_similarity(key_hashes, lsh_key):
-    for keyArr1 in key_hashes:
+def print_similarity(key_hash_strings, lsh_key):
+    for keyArr1 in key_hash_strings:
         (key1, hash_str1) = keyArr1.split("\t", 1)
-        for keyArr2 in key_hashes:
+        for keyArr2 in key_hash_strings:
             (key2, hash_str2) = keyArr2.split("\t", 1)
             if key1 < key2:
                 if hash_str1 != hash_str2:
@@ -44,7 +44,7 @@ for line in sys.stdin:
         if current_lsh:
             if len(key_hashes) > 1:
                 print_similarity(key_hashes, current_lsh)
-            del key_hashes[:]
+            key_hashes.clear()
         current_lsh = lsh
         key_hashes.add(cluster_id + "\t" + minhash)
     count = 0

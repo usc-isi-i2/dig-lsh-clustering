@@ -39,19 +39,31 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -output /user/ubuntu/dig-lsh/50m/lsh &
 
 
-3. Run the Clustering/SImilarity
-----------------------------------
+3. Compute the Key - Clusterid file - 16mins@DT
+-----------------------------------------------
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=100 \
-    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_mapper.py \
-    -mapper /home/ubuntu/dig-lsh-clustering/clusterer/cluster_mapper.py \
-    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_reducer.py \
-    -reducer /home/ubuntu/dig-lsh-clustering/clusterer/cluster_reducer.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/mr_key_clusterid_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/clusterer/mr_key_clusterid_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/mr_key_clusterid_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/clusterer/mr_key_clusterid_reducer.py \
     -input /user/ubuntu/dig-lsh/50m/lsh/* \
-    -output /user/ubuntu/dig-lsh/50m/sim &
+    -output /user/ubuntu/dig-lsh/50m/key-clusterid &
 
-6. Remove the duplicates
+4. Compute the Cluster-id-x Cluster-id-y score cluster-x-size cluster-y-size file
+-----------------------------------------------------------------------------------
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=100 \
+    -D mapred.reduce.tasks=100 \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/mr_cluster_similarity_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/clusterer/mr_cluster_similarity_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/mr_cluster_similarity_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/clusterer/mr_cluster_similarity_reducer.py \
+    -input /user/ubuntu/dig-lsh/50m/lsh/* \
+    -output /user/ubuntu/dig-lsh/50m/cluster-similarity-dup &
+
+5. Remove the duplicates
 ------------------------
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=200 \
@@ -60,20 +72,30 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -mapper /home/ubuntu/dig-lsh-clustering/clusterer/cluster_dedup_mapper.py \
     -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_dedup_reducer.py \
     -reducer /home/ubuntu/dig-lsh-clustering/clusterer/cluster_dedup_reducer.py \
-    -input /user/ubuntu/dig-lsh/50m/sim/* \
-    -output /user/ubuntu/dig-lsh/50m/sim-nodup &
+    -input /user/ubuntu/dig-lsh/50m/cluster-similarity-dup/* \
+    -output /user/ubuntu/dig-lsh/50m/cluster-similarity &
 
 
 7. Convert the output to JSON for the Hue Workflow
 ---------------------------------------------------
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=200 \
-    -D mapred.reduce.tasks=100 \
+    -D mapred.reduce.tasks=200 \
     -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_mapper.py \
     -mapper /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_mapper.py \
     -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_reducer.py \
     -reducer /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_reducer.py \
-    -input /user/ubuntu/dig-lsh/50m/sim-nodup/* \
-    -output /user/worker/ingest/istr50m/similar_body &
+    -input /user/ubuntu/dig-lsh/50m/cluster-similarity/* \
+    -output /user/worker/ingest/istr50m/body-cluster-similarity &
+
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=200 \
+    -D mapred.reduce.tasks=200 \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_reducer.py \
+    -input /user/ubuntu/dig-lsh/50m/key-clusterid/* \
+    -output /user/worker/ingest/istr50m/key-body-clusterid &
 
 
