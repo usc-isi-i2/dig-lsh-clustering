@@ -7,11 +7,12 @@ import hashlib
 for line in sys.stdin:
     # remove leading and trailing whitespace
     line = line.strip()
-    #input is the LSH file:
-    #   lshkey  key minhash
-    (lshkey, key, minhash) = line.split("\t", 2)
-    cluster_id = hashlib.sha1(minhash).hexdigest()
-    print "%s\t%s" % (key, cluster_id)
+    if len(line) > 0:
+        #input is the LSH file:
+        #   lshkey  key minhash
+        (lshkey, key, minhash) = line.split("\t", 2)
+        cluster_id = hashlib.sha1(minhash).hexdigest()
+        print "%s\t%s" % (key, cluster_id)
 
 exit(0)
 
