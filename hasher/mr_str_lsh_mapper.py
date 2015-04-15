@@ -7,16 +7,6 @@ numHashes = 100
 numItemsInBand = 10
 keyPrefix = ""
 
-
-
-def write_tokens(tokens, sep):
-    outStr = ""
-    usep = ""
-    for token in tokens:
-        outStr = outStr + usep + str(token)
-        usep = sep
-    return outStr
-
 class Signature(object):
     """Signature Base class."""
 
@@ -104,7 +94,7 @@ for line in sys.stdin:
                 #print "Adding tokens: " + str(tokens)
                 minHashSig = signer.sign(tokens)
                 lshSig = list(hasher.hash(minHashSig))
-                minOut = ''.join(minHashSig)
+                minOut = '\t'.join(minHashSig)
 
                 for i in range(0, numBands):
                     print (str(i).zfill(3) + ":" + lshSig[i] + separator +
