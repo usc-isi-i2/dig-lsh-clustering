@@ -20,10 +20,10 @@ class TokenPreprocessor:
             return ["".join(j) for j in zip(*[tokens[i:] for i in range(n)])]
         if compute_n_gram_characters:
             ngramObject = ngram.NGram(N=n)
-            tokenized_text = "".join(str(j) for j in tokens)
-            ngram_char_tokens = list(ngramObject.split(tokenized_text))
+            tokenizedText=text.replace(" ","")
+            ngram_char_tokens = list(ngramObject.split(tokenizedText))
             ## remove first n-1 and last n-1 tokens as they are not complete they have $ signs
-            return ngram_char_tokens[n-1:(len(ngram_char_tokens)-(n-1))]
+            return ngram_char_tokens[n-1:(len(ngram_char_tokens)-(n-1))] if len(text) > n else text
         else:
             return list(self.tokenize_input(text))
 
@@ -36,16 +36,19 @@ class TokenPreprocessor:
     def write_tokens(self,tokens, sep):
         outStr = ""
         usep = ""
-        for token in tokens:
-            outStr = outStr + usep + token
-            usep = sep
+        if isinstance(tokens,str):
+            return tokens
+        elif isinstance(tokens,list):
+            for token in tokens:
+                outStr = outStr + usep + token
+                usep = sep
         return outStr
 
     def convert_to_LowerCase(self,text):
         return text.lower()
 
     def convert_UTF8_toAscii(self,text):
-        return unicodedata.normalize('NFKD', text).encode('ascii','ignore')
+        return unicodedata.normalize('NFKD', "".join(text)).encode('ascii','ignore')
 
     def remove_special_characters(self,text):
         return re.sub('[^\w\s]', '', str(text))
@@ -85,8 +88,8 @@ def parse_args():
 inputFilename = None
 outputFilename = None
 n_gram_words = None
-n_gram_characters = None
-n_gram_size = 2
+n_gram_characters = True
+n_gram_size = 3
 separator = "\t"
 
 def die():
@@ -96,22 +99,27 @@ def die():
     exit(1)
 
 
-parse_args()
+# check if this is main because when this this class is called from other module the following code should not get executed
 
-if len(sys.argv) < 3:
-    die()
+if __name__ == '__main__':
 
-file = open(inputFilename,'r')
-outputFile = open(outputFilename,'w')
-for line in file:
-    lineParts = list(line.strip().split("\t"))
+    parse_args()
+
+  #  if len(sys.argv) < 3:
+   #     die()
+
+    file = open(inputFilename,'r')
+    outputFile = open(outputFilename,'w')
     tokenPreprocessor = TokenPreprocessor();
-    preprocessedText = tokenPreprocessor.remove_special_characters(lineParts)
-    ngram_tokens = TokenPreprocessor().getPreprocessedTokens(preprocessedText,n_gram_characters,n_gram_words,int(n_gram_size))
-    outputFile.write(TokenPreprocessor().write_tokens(ngram_tokens,"\t") + "\n")
+    for line in file:
+        lineParts = list(line.strip().split(separator))
+        preprocessedText = tokenPreprocessor.replace_All_White(lineParts[0])
+        preprocessedText = tokenPreprocessor.remove_special_characters(lineParts[0])
+        ngram_tokens = TokenPreprocessor().getPreprocessedTokens(preprocessedText,n_gram_characters,n_gram_words,int(n_gram_size))
+        outputFile.write(preprocessedText + "\t" +TokenPreprocessor().write_tokens(ngram_tokens,"\t") + "\n")
 
-file.close()
-outputFile.close()
+    file.close()
+    outputFile.close()
 
 
 
