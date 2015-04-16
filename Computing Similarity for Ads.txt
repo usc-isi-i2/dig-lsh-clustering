@@ -88,7 +88,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -output /user/ubuntu/dig-lsh/50m/cluster-similarity &
 
 
-7. Convert the output to JSON for the Hue Workflow
+7. Convert the output to JSON for the Hue Workflow - 1hrs, 23mins + 1mins, 21sec
 ---------------------------------------------------
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=200 \
