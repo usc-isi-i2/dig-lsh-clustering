@@ -1,0 +1,144 @@
+{
+  "stopwords":["a", "an", "and", "are", "as", "at", "be", "but", "by",
+    "for", "if", "in", "into", "is", "it",
+    "no", "not", "of", "on", "or", "such",
+    "that", "the", "their", "then", "there", "these",
+    "they", "this", "to", "was", "will", "with", "-", ";", ",", "_", "+", "/", "\\"],
+
+    "defaultConfig":{
+    "analyzer":{
+        "replacements":[
+          {
+            "Description":"removes special characters",
+            "regex":"[^\\w\\s]",
+            "replacement": ""
+          },
+          {
+            "Description":"remove quotes in string",
+            "regex":"\"",
+            "replacement":""
+          }
+          ],
+          "filters":[
+            {
+              "Description": "if latinfilter is set to true, converts utf8 to ascii lowercase is true converts the text to lowercase, similarly for uppercase",
+              "latinfilter": true
+            },
+            {
+              "Description": "converts to lowercase if set to true",
+              "lowercase": false
+            },
+            {
+              "Description": "converts to uppercase if set to true",
+              "uppercase": false
+            },
+            {
+              "Description":"removes multiple spaces and replaces by a single space character if set to true",
+              "removemultiplespaces":true
+            }
+            ],
+            "tokenization":[
+              {
+                "Description": "specify the type required for tokenization if it is character - generate character based tokens and if it is word -- generates word based tokens and size integer",
+                "type": "character"
+              },
+              {
+                "Description":"size of ngram",
+                "size":6
+              }
+              ]
+      }
+
+    },
+
+    "config":[
+      {
+      "field":1,
+      "defaultConfig":true,
+      "analyzer":{
+        "replacements":[
+          {
+            "Description":"removes special characters",
+            "regex":"[^\\w\\s]",
+            "replacement": ""
+          }
+          ],
+          "filters":[
+            {
+              "Description": "if latinfilter is set to true, converts utf8 to ascii ",
+              "latinfilter": true
+            },
+            {
+              "Description":"converts to lowercase if set to true",
+              "lowercase":true
+            },
+            {
+              "Description":"converts to uppercase if set to true",
+              "uppercase":false
+            },
+            {
+              "Description":"removes multiple spaces if true",
+              "removemultiplespaces":true
+            }
+            ],
+            "tokenization":[
+              {
+                "Description": "specify the type required for tokenization if you specify character - generate character based tokens and if you specify word -- generates word based tokens",
+                "type": "character"
+              },
+              {
+                "Description":"mention the size required for size of ngram",
+                "size":2
+              }
+
+              ]
+            }
+        },
+          {
+         "field":2,
+       "defaultConfig":true,
+       "analyzer":{
+         "replacements":[
+             {
+            "Description":"removes special characters",
+            "regex":"[^\\w\\s]",
+            "replacement": ""
+              }
+            ],
+          "filters":[
+            {
+              "Description": "if latinfilter is set to true, converts utf8 to ascii lowercase is true",
+              "latinfilter": true
+            },
+            {
+              "Description": "converts to lowercase if set to true",
+              "lowercase": false
+            },
+            {
+              "Description": "converts to uppercase if set to true",
+              "uppercase": true
+            },
+            {
+              "Description":"removes multiple spaces of set to true",
+              "removemultiplespaces":true
+            }
+            ],
+            "tokenization":[
+              {
+                "Description":"specify the type required for tokenization if you specify character - generate character based tokens and if you specify word -- generates word based tokens and size integer",
+                "type":"character"
+              },
+              {
+                "Description":"size of ngram",
+                "size":4
+              }
+              ]
+      }
+      },
+      {
+      "field":3,
+      "defaultConfig":true
+
+      }
+      ]
+}
