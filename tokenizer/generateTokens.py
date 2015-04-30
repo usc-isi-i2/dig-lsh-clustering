@@ -6,6 +6,7 @@ import re
 import json
 import codecs
 
+
 #returns the tokens removing the stop words
 def tokenize_input(input):
         tokens = input.split()

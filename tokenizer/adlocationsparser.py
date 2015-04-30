@@ -50,7 +50,6 @@ parse_args()
 if len(sys.argv) < 2:
     die()
 
-
 file = open(inputFilename,'r')
 outputFile = open(outputFilename,'w')
 

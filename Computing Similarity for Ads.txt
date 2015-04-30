@@ -112,7 +112,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
 
 
 
-Extra: Compute the number of cluster similarities
+Extra: Compute the number of cluster similarities - 5hrs, 36mins
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=200 \
     -D mapred.reduce.tasks=1 \
@@ -123,7 +123,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -input /user/ubuntu/dig-lsh/50m/cluster-similarity/* \
     -output /user/ubuntu/dig-lsh/50m/cluster-similarity-count &
 
-Extra: COmpute table of cluster-id count
+Extra: COmpute table of cluster-id count - 13mins, 12sec
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
     -D mapred.reduce.tasks=500 \
@@ -134,7 +134,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -input /user/ubuntu/dig-lsh/50m/lsh-clusterid/* \
     -output /user/ubuntu/dig-lsh/50m/clusterid-size &
 
-Extra: Compute the number of clusters
+Extra: Compute the number of clusters - 2mins, 19sec
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=200 \
     -D mapred.reduce.tasks=1 \
@@ -144,3 +144,13 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -reducer /home/ubuntu/dig-lsh-clustering/mr_line_count_reducer.py \
     -input /user/ubuntu/dig-lsh/50m/clusterid-size/* \
     -output /user/ubuntu/dig-lsh/50m/clusterid-size-count &
+
+nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
+    -D mapred.map.tasks=500 \
+    -D mapred.reduce.tasks=500 \
+    -file /home/ubuntu/dig-lsh-clustering/mr_line_count_mapper.py \
+    -mapper /home/ubuntu/dig-lsh-clustering/mr_line_count_mapper.py \
+    -file /home/ubuntu/dig-lsh-clustering/mr_find_cluster_reducer.py \
+    -reducer /home/ubuntu/dig-lsh-clustering/mr_find_cluster_reducer.py \
+    -input /user/ubuntu/dig-lsh/50m/key-clusterid/* \
+    -output /user/ubuntu/dig-lsh/50m/clusterid-000a859879e68819b77570b241fa9c63b7b005e9 &
