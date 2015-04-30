@@ -43,6 +43,7 @@ def die():
     exit(1)
 
 
+
 inputFilename = None
 outputFilename = None
 separator = "\t"

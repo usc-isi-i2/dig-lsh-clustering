@@ -7,6 +7,7 @@ import json
 import codecs
 
 
+
 #returns the tokens removing the stop words
 def tokenize_input(input):
         tokens = input.split()
@@ -102,6 +103,7 @@ def die():
     print "Please input the required parameters"
     print "Usage: generateTokensNew.py --input <input filename> --config <configuration filename> --output <output filename> [--separator <sep=\\t>]"
     exit(1)
+
 
 inputFilename = None
 configurationFilename = None
