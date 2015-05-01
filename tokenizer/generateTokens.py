@@ -82,15 +82,15 @@ def doPreprocessing(text, analyzer, settings):
     if analyzer.has_key("tokenizers"):
         for tokenizer in analyzer["tokenizers"]:
             if tokenizer == "whitespace":
-                tokens = tokenize_input(text)
+                tokens.extend(tokenize_input(text))
             else:
                 tokenizer_setting = settings[tokenizer]
                 if tokenizer_setting["type"] == "character_ngram":
                     size = int(tokenizer_setting["size"])
-                    tokens = getNGrams(text, "character", size)
+                    tokens.extend(getNGrams(text, "character", size))
                 elif tokenizer_setting["type"] == "word_ngram":
                     size = int(tokenizer_setting["size"])
-                    tokens = getNGrams(text, "word", size)
+                    tokens.extend(getNGrams(text, "word", size))
     return tokens
 
 
