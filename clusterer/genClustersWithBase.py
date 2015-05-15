@@ -180,6 +180,7 @@ def parse_args():
     global basePrefix
     global minItemsInCluster
     global dataType
+    global scoreThreshold
 
     for arg_idx, arg in enumerate(sys.argv):
         if arg == "--input":
@@ -212,7 +213,9 @@ def parse_args():
         if arg == "--dataType":
             dataType = sys.argv[arg_idx+1]
             continue
-
+        if arg == "--threshold":
+            scoreThreshold = sys.argv[arg_idx+1]
+            continue
 
 def die():
     print "Please input the required parameters"
