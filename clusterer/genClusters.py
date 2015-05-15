@@ -1,9 +1,11 @@
 __author__ = 'dipsy'
 import sys
-import util
 import os
 from hdfs.hfile import Hfile
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils import util
 
 class ClusterGenerator(object):
 

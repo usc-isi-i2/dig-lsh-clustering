@@ -1,6 +1,9 @@
 __author__ = 'dipsy'
 import sys
-import util
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils import util
 
 # precision =  | {relevant documents} ^ {retrieved documents} |
 #             -------------------------------------------------

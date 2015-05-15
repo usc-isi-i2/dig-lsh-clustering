@@ -1,13 +1,14 @@
-import util
-
 __author__ = 'rajagopal067'
 
 
 import sys
 import fileinput
 import os
-import csv
-from hdfs.hfile import Hfile
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils import util
+
 
 #This class has computesimilarity method which computes the similarity between files having 2 different prefixes
 

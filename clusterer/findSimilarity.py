@@ -1,6 +1,10 @@
 __author__ = 'rajagopal067'
 import sys
-import util
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils import util
 import fileinput
 
 similarityList=[]

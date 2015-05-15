@@ -6,6 +6,7 @@ import re
 import json
 import codecs
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def tokenize_input(input):
     tokens = input.split()

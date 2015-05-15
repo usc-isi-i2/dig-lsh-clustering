@@ -1,5 +1,7 @@
 __author__ = 'dipsy'
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def write_tokens(tokens, sep):
     outStr = ""
@@ -27,18 +29,19 @@ def sort_csv_file(filename, columnArr, delim):
     if not os.path.exists(TMP_DIR):
         os.mkdir(TMP_DIR)
     from csvsort import csvsort
-    csvsort(filename, columnArr, delimiter=delim, has_header=False)
-    try:
-        for the_file in os.listdir(TMP_DIR):
-            file_path = os.path.join(TMP_DIR, the_file)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-            except:
-                pass
-        os.rmdir(TMP_DIR)
-    except OSError:
-        pass
+    if os.stat(filename).st_size > 0:
+        csvsort(filename, columnArr, delimiter=delim, has_header=False)
+        try:
+            for the_file in os.listdir(TMP_DIR):
+                file_path = os.path.join(TMP_DIR, the_file)
+                try:
+                    if os.path.isfile(file_path):
+                        os.unlink(file_path)
+                except:
+                    pass
+            os.rmdir(TMP_DIR)
+        except OSError:
+            pass
 
 class Searcher:
     def __init__(self, filename):
