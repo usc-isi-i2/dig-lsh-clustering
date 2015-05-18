@@ -1,6 +1,10 @@
 {
 	"fieldConfig": {
+	    "0": {
+		    "prefix": "city:"
+		},
 		"1": {
+			"prefix": "state:",
 			"analyzer": {
 				"filters": [
 					"uppercase"

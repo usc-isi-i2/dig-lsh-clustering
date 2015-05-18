@@ -5,6 +5,7 @@ import unicodedata
 import re
 import json
 import codecs
+import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -59,7 +60,7 @@ def getNGrams(text,type,n):
 # does the preprocessing takes fieldvalue as input-
 # does regex evaluations specified in configuration file, converts to utf8, lowercase
 #returns the tokens character or word
-def doPreprocessing(text, analyzer, settings):
+def doPreprocessing(text, prefix, analyzer, settings):
     if analyzer.has_key("replacements"):
         for replacement in analyzer["replacements"]:
             text = re.sub(replacement['regex'], replacement['replacement'], text,flags=re.UNICODE)
@@ -92,7 +93,12 @@ def doPreprocessing(text, analyzer, settings):
                 elif tokenizer_setting["type"] == "word_ngram":
                     size = int(tokenizer_setting["size"])
                     tokens.extend(getNGrams(text, "word", size))
-    return tokens
+
+    final_tokens = []
+    for token in tokens:
+        final_tokens.append(prefix + token)
+
+    return final_tokens
 
 
 def parse_args():
@@ -141,13 +147,21 @@ for line in file:
     key = lineParts[0]
     lineParts = lineParts[1:]
     tokens = []
+    prefix = ""
     for index, fieldvalue in enumerate(lineParts):
         if(config["fieldConfig"].has_key(str(index))):
-            analyzer = config["fieldConfig"][str(index)]["analyzer"]
+            field_config = config["fieldConfig"][str(index)]
+            if field_config.has_key("analyzer"):
+                analyzer = field_config["analyzer"]
+            else:
+                analyzer = config["defaultConfig"]["analyzer"]
+
+            if field_config.has_key("prefix"):
+                prefix = field_config["prefix"]
         else:
             analyzer = config["defaultConfig"]["analyzer"]
 
-        field_tokens = doPreprocessing(fieldvalue, analyzer, settings)
+        field_tokens = doPreprocessing(fieldvalue, prefix, analyzer, settings)
         tokens.extend(field_tokens)
     outputFile.write(key + separator + write_tokens(tokens, separator) + "\n")
 
