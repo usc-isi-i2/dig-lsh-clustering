@@ -214,14 +214,15 @@ def parse_args():
             dataType = sys.argv[arg_idx+1]
             continue
         if arg == "--threshold":
-            scoreThreshold = sys.argv[arg_idx+1]
+            scoreThreshold = float(sys.argv[arg_idx+1])
             continue
 
 def die():
     print "Please input the required parameters"
     print "Usage: genClustersWithBase.py --input <input filename> --inputPrefix <input Prefix> --base <base filename> --basePrefix <base prefix> " \
           "--output <output dir> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>]" \
-          " [--minItemsInCluster <minItemsInCluster=2>] [--dataType <default=integer|string>]"
+          " [--minItemsInCluster <minItemsInCluster=2>] [--dataType <default=integer|string>]" \
+          " [--threshold <threshold for similarity score to be in one cluster>]"
     exit(1)
 
 parse_args()

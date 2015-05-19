@@ -149,7 +149,7 @@ def parse_args():
             separator = sys.argv[arg_idx+1]
             continue
         if arg == "--threshold":
-            scoreThreshold = sys.argv[arg_idx+1]
+            scoreThreshold = float(sys.argv[arg_idx+1])
             continue
         if arg == "--computeSimilarity":
             computeSimilarityStr = (sys.argv[arg_idx+1])

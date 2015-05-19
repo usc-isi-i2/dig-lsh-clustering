@@ -28,7 +28,7 @@ sys	0m0.382s
 ---------------------------------------------------------------------
 Now compute the clusters for saam with geoname as base
 ---------------------------------------------------------------------
-time python genClusters.py --input gen_clusters/cities/saam_cities-int-lsh.csv --inputPrefix saam: --base gen_clusters/cities/geonames_cities-int-lsh.csv --basePrefix geoname: --output gen_clusters/cities/saam-matched-to-geonames-50-10.csv --dataType integer --numHashes 50 --numItemsInBand 10 
+time python genClustersWithBase.py --input gen_clusters/cities/saam_cities-int-lsh.csv --inputPrefix saam: --base gen_clusters/cities/geonames_cities-int-lsh.csv --basePrefix geoname: --output gen_clusters/cities/saam-matched-to-geonames-50-10.csv --dataType integer --numHashes 50 --numItemsInBand 10
 real	0m35.703s
 user	0m33.200s
 sys	0m2.085s
