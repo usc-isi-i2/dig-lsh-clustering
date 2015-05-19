@@ -6,6 +6,7 @@
 *.dct
 
 *.dct.txt
-
-
+*.json
+*.csv
+*.tsv
 tokenizer/.DS_Store
