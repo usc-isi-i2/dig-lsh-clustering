@@ -96,6 +96,13 @@ class ClusterWithBaseGenerator:
                 else:
                     currentClusterInput.append(lineTokens[1:])
 
+        if len(currentClusterInput) > 0:
+            if computeSimilarity:
+                self.__computeSimilarity(currentClusterInput,currentClusterBase,out,lsh_band)
+
+            else:
+                self.__writeClusters(currentClusterInput,currentClusterBase,out)
+
         file.close()
         out.close()
         print "Done computing similarities"

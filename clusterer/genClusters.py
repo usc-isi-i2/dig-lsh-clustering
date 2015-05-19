@@ -73,6 +73,11 @@ class ClusterGenerator(object):
 
                 key_hashes.append(key_hash)
 
+        if len(key_hashes) > 1:
+            if compute_similarity:
+                self.__compute_similarity(key_hashes, out, lsh_band)
+            else:
+                self.__write_clusters(key_hashes, out)
         in_file.close()
         out.close()
         print "Done computing similarities"
