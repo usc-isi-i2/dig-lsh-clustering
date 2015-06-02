@@ -154,7 +154,7 @@ for line in inputFile:
         else:
             group_json, line_json = group_json_by_column(group_json, line_json, header[groupByColumn-1])
             if line_json is not None:
-                compact_json = {line_json[header[groupByColumn-1]]: line_json["matches"]}
+                compact_json = {"source":line_json[header[groupByColumn-1]],"candidates":line_json["matches"]}
                 if pretty_print is True:
                     outputFile.write(sep + "\n" + json.dumps(compact_json, indent=2, separators=(',', ': ')))
                 else:
