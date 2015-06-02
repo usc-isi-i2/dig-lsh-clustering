@@ -39,7 +39,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -output /user/ubuntu/dig-lsh/50m/lsh &
 
 
-3. Compute the Key - Clusterid file - 16mins@DT
+3. Compute the Key - Clusterid file - 16mins@DT -> 20,852,587 clusters, 7GB
 -----------------------------------------------
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=100 \
@@ -75,7 +75,7 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -input /user/ubuntu/dig-lsh/50m/lsh-clusterid/* \
     -output /user/ubuntu/dig-lsh/50m/cluster-similarity-dup &
 
-5. Remove the duplicates - 56mins, 14sec
+5. Remove the duplicates - 56mins, 14sec -> 4,059,057,260 cluster similarities, 370GB
 ------------------------
 nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -D mapred.map.tasks=200 \
@@ -109,7 +109,6 @@ nohup time hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar \
     -reducer /home/ubuntu/dig-lsh-clustering/clusterer/cluster_jsonoutput_reducer.py \
     -input /user/ubuntu/dig-lsh/50m/key-clusterid/* \
     -output /user/worker/ingest/istr50m/body-clusters/key-body-clusterid &
-
 
 
 Extra: Compute the number of cluster similarities - 5hrs, 36mins
