@@ -50,7 +50,7 @@ def getNGrams(text,type,n):
         #remove the dollar sign that comes with the ngrams
         ngram_char_tokens = [token.replace('$','') for token in ngram_char_tokens]
         if len(text) > n:
-            return ngram_char_tokens[n-1:(len(ngram_char_tokens)-(n-1))]
+            return ngram_char_tokens
         else:
             a = []
             a.append(text)
