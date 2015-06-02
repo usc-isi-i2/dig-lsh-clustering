@@ -47,9 +47,8 @@ def getNGrams(text,type,n):
     if(type == "character"):
         ngramObject = ngram.NGram(N=n)
         ngram_char_tokens = list(ngramObject.split(text))
-        ## remove first n-1 and last n-1 tokens as they are not complete they have $ signs
         if len(text) > n:
-            return ngram_char_tokens[n-1:(len(ngram_char_tokens)-(n-1))]
+            return ngram_char_tokens
         else:
             a = []
             a.append(text)
