@@ -71,7 +71,8 @@ def doPreprocessing(text, prefix, analyzer, settings):
             elif filter == "uppercase":
                 text = text.upper()
             elif filter == "latin":
-                text = unicodedata.normalize('NFKD', "".join(text))
+                nfkd_form = unicodedata.normalize('NFKD', "".join(text))
+                text = nfkd_form.encode('ASCII','ignore')
             else:
                 filter_settings = settings[filter]
                 if filter_settings["type"] == "stop":
