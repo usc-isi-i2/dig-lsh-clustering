@@ -39,7 +39,8 @@ def parse_args():
 
 def die():
     print "Please input the required parameters"
-    print "Usage: genMinhash.py --input <input filename> --output <output filename> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--dataType <default=integer|string>] [--outputHashes]"
+    print "Usage: genMinhash.py --input <input filename> --output <output filename> [--separator <sep=\\t>] " \
+          "[--numHashes <numHashes=20>] [--dataType <default=integer|string>]"
     exit(1)
 
 args = parse_args()

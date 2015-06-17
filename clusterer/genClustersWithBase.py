@@ -188,6 +188,7 @@ def parse_args():
     global minItemsInCluster
     global dataType
     global scoreThreshold
+    global computeSimilarity
 
     for arg_idx, arg in enumerate(sys.argv):
         if arg == "--input":
@@ -222,6 +223,11 @@ def parse_args():
             continue
         if arg == "--threshold":
             scoreThreshold = float(sys.argv[arg_idx+1])
+            continue
+        if arg == "--computeSimilarity":
+            computeSimilarityStr = (sys.argv[arg_idx+1])
+            if computeSimilarityStr == "False":
+                computeSimilarity = True
             continue
 
 def die():
