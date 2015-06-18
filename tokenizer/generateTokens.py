@@ -59,7 +59,7 @@ def getNGrams(text,type,n):
 # does the preprocessing takes fieldvalue as input-
 # does regex evaluations specified in configuration file, converts to utf8, lowercase
 #returns the tokens character or word
-def doPreprocessing(text, prefix, analyzer, settings):
+def doPreprocessing(text,prefix,analyzer, settings):
     if analyzer.has_key("replacements"):
         for replacement in analyzer["replacements"]:
             text = re.sub(replacement['regex'], replacement['replacement'], text,flags=re.UNICODE)
@@ -96,7 +96,7 @@ def doPreprocessing(text, prefix, analyzer, settings):
 
     final_tokens = []
     for token in tokens:
-        final_tokens.append(prefix + token)
+        final_tokens.append(prefix+token)
 
     return final_tokens
 
@@ -118,6 +118,61 @@ def parse_args():
             continue
         if arg == "--config":
             configurationFilename = sys.argv[arg_idx+1]
+
+def getTokens(line):
+    tokens=[]
+    for index, fieldvalue in enumerate(line):
+        prefix = fieldvalue.split(':')[0] + ':'
+        fieldvalue = fieldvalue.split(':')[1]
+        token_config={}
+        for index,field_config in config["fieldConfig"].iteritems():
+            if (field_config.has_key("prefix") and field_config["prefix"] == prefix):
+                token_config = field_config
+        if token_config.has_key('analyzer'):
+            analyzer=token_config["analyzer"]
+        else:
+            analyzer=config["defaultConfig"]["analyzer"]
+        field_tokens = doPreprocessing(fieldvalue,prefix, analyzer, settings)
+        tokens.extend(field_tokens)
+    return tokens
+
+# returns a dictionary which has boolean values for a blank field token is allowed or not
+def getDictionaryValues(config,dict_blank_fields,dict_prefixes):
+
+    for index, fieldvalue in enumerate(lineParts):
+        if(config["fieldConfig"].has_key(str(index))):
+            field_config = config["fieldConfig"][str(index)]
+        else:
+            field_config = config["defaultConfig"]
+        if field_config.has_key("prefix"):
+                dict_prefixes[index] = field_config["prefix"]
+        if field_config.has_key("analyzer"):
+            analyzer = field_config["analyzer"]
+        else:
+            analyzer = config["defaultConfig"]["analyzer"]
+        if analyzer.has_key("allow_blank_field_tokens"):
+            if analyzer["allow_blank_field_tokens"] is True:
+                dict_blank_fields[index]=True
+            else:
+                dict_blank_fields[index]=False
+        else:
+            dict_blank_fields[index]=False
+
+
+# returns crossproduct based on blank tokens allowed for a field value
+def getCrossProduct(dict_blank_fields,dict_prefixes,line):
+    crossProduct=[[]]
+    temp=[]
+    for index in dict_blank_fields.keys():
+        if dict_blank_fields[index] is False:
+            crossProduct = [x + [dict_prefixes[index] + line[index]] for x in crossProduct]
+    for index in dict_blank_fields.keys():
+        if dict_blank_fields[index] is True:
+            if crossProduct:
+                temp = [x+ [dict_prefixes[index] + line[index]] for x in crossProduct]
+                crossProduct = crossProduct + temp
+    return crossProduct
+
 
 def die():
     print "Please input the required parameters"
@@ -147,23 +202,14 @@ for line in file:
     key = lineParts[0]
     lineParts = lineParts[1:]
     tokens = []
-    prefix = ""
-    for index, fieldvalue in enumerate(lineParts):
-        if(config["fieldConfig"].has_key(str(index))):
-            field_config = config["fieldConfig"][str(index)]
-            if field_config.has_key("analyzer"):
-                analyzer = field_config["analyzer"]
-            else:
-                analyzer = config["defaultConfig"]["analyzer"]
+    dict_blank_fields = {}
+    dict_prefixes = {}
+    getDictionaryValues(config,dict_blank_fields,dict_prefixes)
+    crossProductArray = getCrossProduct(dict_blank_fields,dict_prefixes,lineParts)
 
-            if field_config.has_key("prefix"):
-                prefix = field_config["prefix"]
-        else:
-            analyzer = config["defaultConfig"]["analyzer"]
-
-        field_tokens = doPreprocessing(fieldvalue, prefix, analyzer, settings)
-        tokens.extend(field_tokens)
-    outputFile.write(key + separator + write_tokens(tokens, separator) + "\n")
+    for crossProduct in crossProductArray:
+        tokens = getTokens(crossProduct)
+        outputFile.write(key + separator + write_tokens(tokens, separator) + "\n")
 
 print "Done tokenizing"
 file.close()
