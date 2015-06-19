@@ -208,8 +208,9 @@ for line in file:
     crossProductArray = getCrossProduct(dict_blank_fields,dict_prefixes,lineParts)
 
     for crossProduct in crossProductArray:
-        tokens = getTokens(crossProduct)
-        outputFile.write(key + separator + write_tokens(tokens, separator) + "\n")
+        if crossProduct:
+            tokens = getTokens(crossProduct)
+            outputFile.write(key + separator + write_tokens(tokens, separator) + "\n")
 
 print "Done tokenizing"
 file.close()
