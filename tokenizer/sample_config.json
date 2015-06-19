@@ -1,11 +1,22 @@
 {
   "fieldConfig": {
     "0": {
-      "prefix": "city:"
+      "prefix": "city:",
+      "analyzer": {
+        "allow_blank_field_tokens":true,
+        "filters":[
+          "lowercase"
+        ],
+        "tokenizers":[
+          "character_n_3"
+        ]
+      }
     },
     "1": {
       "prefix": "state:",
       "analyzer": {
+        "allow_blank_field_tokens":false,
+
         "filters": [
           "uppercase"
         ],
@@ -13,10 +24,15 @@
           "whitespace"
         ]
       }
+    },
+    "2":{
+      "prefix":"country:"
     }
   },
   "defaultConfig": {
+
     "analyzer": {
+      "allow_blank_field_tokens":false,
       "replacements": [
         {
           "regex": "[^\\w\\s]",
@@ -40,7 +56,7 @@
         "stop_default"
       ],
       "tokenizers": [
-        "character_n_6"
+        "character_n_3"
       ]
     }
   },
@@ -49,9 +65,9 @@
       "type": "word_ngram",
       "size": 2
     },
-    "character_n_6": {
+    "character_n_3": {
       "type": "character_ngram",
-      "size": 6
+      "size": 3
     },
     "stop_default": {
       "type": "stop",
