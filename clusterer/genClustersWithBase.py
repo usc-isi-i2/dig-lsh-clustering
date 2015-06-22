@@ -227,7 +227,7 @@ def parse_args():
         if arg == "--computeSimilarity":
             computeSimilarityStr = (sys.argv[arg_idx+1])
             if computeSimilarityStr == "False":
-                computeSimilarity = True
+                computeSimilarity = False
             continue
 
 def die():
@@ -252,6 +252,6 @@ clusterGen.run(inputFilename,baseFilename,outputFilename,separator,computeSimila
 
 
 # this will remove all the duplicates
-if removeDuplicates:
+if computeSimilarity and removeDuplicates:
    clusterGen.remove_duplicates(outputFilename)
 
