@@ -146,12 +146,8 @@ def getDictionaryValues(config,dict_blank_fields,dict_prefixes):
             field_config = config["defaultConfig"]
         if field_config.has_key("prefix"):
                 dict_prefixes[index] = field_config["prefix"]
-        if field_config.has_key("analyzer"):
-            analyzer = field_config["analyzer"]
-        else:
-            analyzer = config["defaultConfig"]["analyzer"]
-        if analyzer.has_key("allow_blank_field_tokens"):
-            if analyzer["allow_blank_field_tokens"] is True:
+        if field_config.has_key("allow_blank"):
+            if field_config["allow_blank"] is True:
                 dict_blank_fields[index]=True
             else:
                 dict_blank_fields[index]=False
