@@ -9,4 +9,5 @@
 *.json
 *.csv
 *.tsv
+*.zip
 tokenizer/.DS_Store

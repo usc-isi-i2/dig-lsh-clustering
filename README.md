@@ -45,3 +45,23 @@ runLSH.py --input <input filename> --output <output filename> [--separator <sep=
         ```
          python runLSH.py --input gen_clusters/clean_title/istr-100k-clean-title-for-lsh-int.tsv --output gen_clusters/clean_title/istr-100k-clean-title-clusters-int.json --dataType integer --numItemsInBand 10 --numHashes 20
         ```
+
+v2: LSH using Spark
+===================
+
+Requirements:
+-------------
+Download and unzip spark in <spark-folder>
+
+Step 1: Tokenization
+---------------------
+```
+cd tokenizer
+zip -r tokenizer.zip RowTokenizer.py inputParser
+cd <spark-folder>
+./bin/spark-submit --py-files ~/github/dig-lsh-clustering/tokenizer/tokenizer.zip \
+    ~/github/dig-lsh-clustering/tokenizer/tokenizer.py \
+    ~/github/dig-lsh-clustering/tokenizer/test/sample.tsv \
+    ~/github/dig-lsh-clustering/tokenizer/test/sample_config.json \
+    ~/github/dig-lsh-clustering/tokenizer/test/sample-tokenized
+```
