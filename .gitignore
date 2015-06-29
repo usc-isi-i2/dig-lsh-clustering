@@ -11,3 +11,16 @@
 *.tsv
 *.zip
 tokenizer/.DS_Store
+
+*.crc
+
+datasets/sample-ad-location/tokens/*
+datasets/sample-ad-location/hashes/*
+datasets/sample-ad-location/geonames-clusters/*
+datasets/geonames/tokens/*
+datasets/geonames/hashes/*
+
+
+*.zip
+
+gen_clusters/body_text/istr-100k.zip

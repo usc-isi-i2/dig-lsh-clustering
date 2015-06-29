@@ -1,110 +1,67 @@
-__author__ = 'dipsy'
+#!/usr/bin/env python
 
-import sys
+from pyspark import SparkContext
+from optparse import OptionParser
+from tokenizer.tokenizer import Tokenizer
+from hasher.hasher import Hasher
+from clusterer.clusterer import Clusterer
 import json
 
-from hasher.lsh.lsh import Cluster, IntegerCluster
+if __name__ == "__main__":
+    """
+        Usage: tokenizer.py [input] [output] [reducer:feature_name]...
+    """
+    sc = SparkContext(appName="LSH")
 
+    usage = "usage: %prog [options] input config output"
+    parser = OptionParser()
+    parser.add_option("-r", "--separator", dest="separator", type="string",
+                      help="field separator", default="\t")
+    parser.add_option("-d", "--type", dest="data_type", type="string",
+                      help="input data type: csv/json", default="csv")
+    parser.add_option("-i", "--inputformat", dest="inputformat", type="string",
+                      help="input file format: text/sequence", default="text")
+    parser.add_option("-n", "--numHashes", dest="numHashes", type="int",
+                      help="number of minhashes", default=100)
+    parser.add_option("-b", "--numItemsInBand", dest="numItemsInBand", type="int",
+                      help="number of items in each band", default=10)
+    parser.add_option("-s", "--computeSimilarity", action="store_true",
+                      dest="computeSimilarity", default=False, help="compute similarity")
+    parser.add_option("-t", "--threshold", type="float",
+                      dest="threshold", default=0.0, help="similarity threshold")
+    parser.add_option("-e", "--base", dest="base", type="string",
+                      help="base file", default="")
+    parser.add_option("-o", "--outputformat", dest="outputformat", type="string",
+                      help="output file format: text/sequence", default="text")
 
-inputFilename = None
-outputFilename = None
-separator = "\t"
-numHashes = 20
-numItemsInBand = 5
-minItemsInCluster = 2
-dataType = "integer"
-outputHashes = False
+    (c_options, args) = parser.parse_args()
+    print "Got options:", c_options
+    inputFilename = args[0]
+    configFilename = args[1]
+    outputFilename = args[2]
 
-def parse_args():
-    global inputFilename
-    global outputFilename
-    global separator
-    global numHashes
-    global numItemsInBand
-    global minItemsInCluster
-    global dataType
-    global outputHashes
+    tokenizer = Tokenizer(configFilename, c_options)
+    if c_options.inputformat == "text":
+        rdd = tokenizer.tokenize_text_file(sc, inputFilename, c_options.data_type)
+    else:
+        rdd = tokenizer.tokenize_seq_file(sc, inputFilename, c_options.data_type)
+    hasher = Hasher(c_options.numHashes, c_options.numItemsInBand, c_options.computeSimilarity)
+    input_lsh_rdd = hasher.compute_hashes(rdd)
 
-    for arg_idx, arg in enumerate(sys.argv):
-        if arg == "--input":
-            inputFilename = sys.argv[arg_idx+1]
-            continue
-        if arg == "--output":
-            outputFilename = sys.argv[arg_idx+1]
-            continue
-        if arg == "--separator":
-            separator = sys.argv[arg_idx+1]
-            continue
-        if arg == "--numHashes":
-            numHashes = int(sys.argv[arg_idx+1])
-            continue
-        if arg == "--numItemsInBand":
-            numItemsInBand = int(sys.argv[arg_idx+1])
-            continue
-        if arg == "--minItemsInCluster":
-            minItemsInCluster = int(sys.argv[arg_idx+1])
-            continue
-        if arg == "--dataType":
-            dataType = sys.argv[arg_idx+1]
-            continue
-        if arg == "--outputHashes":
-            outputHashes = True
+    clusterer = Clusterer(c_options.numHashes, c_options.numItemsInBand,
+                          c_options.computeSimilarity, c_options.threshold)
 
-def die():
-    print "Please input the required parameters"
-    print "Usage: runLSH.py --input <input filename> --output <output filename> [--separator <sep=\\t>] [--numHashes <numHashes=20>] [--numItemsInBand <numItemsInBand=5>] [--minItemsInCluster <minItemsInCluster=2>] [--dataType <default=integer|string>] [--outputHashes]"
-    exit(1)
+    if len(c_options.base) > 0:
+        if c_options.inputformat == "text":
+            base_rdd = tokenizer.tokenize_text_file(sc, c_options.base, c_options.data_type)
+        else:
+            base_rdd = tokenizer.tokenize_seq_file(sc, c_options.base, c_options.data_type)
+        base_lsh_rdd = hasher.compute_hashes(base_rdd)
+        result = clusterer.compute_clusters_with_base(input_lsh_rdd, base_lsh_rdd)
+    else:
+        result = clusterer.compute_clusters(input_lsh_rdd)
 
-parse_args()
-if inputFilename is None:
-    die()
-if outputFilename is None:
-    die()
-
-print "Using dataType:" + dataType +", numHashes:" + str(numHashes) + ", numItemsInBand:" + str(numItemsInBand) + ", minItemsInCluster:" + str(minItemsInCluster)
-if dataType == "string":
-    cluster = Cluster(numHashes, numItemsInBand)
-else:
-    cluster = IntegerCluster(numHashes, numItemsInBand)
-file = open(inputFilename, 'r')
-for line in file:
-    idx = line.find("\t")
-    if idx != -1:
-        key = line[0:idx]
-        line_len = len(line)
-        data = line[idx + 1:line_len-1] #remove the \n
-
-        tokens = data.split(separator)
-        if len(tokens) > 0:
-            # print "Adding tokens: " + str(tokens)
-            cluster.add_set(tokens, key)
-
-file.close()
-
-if outputHashes:
-    result = list(cluster.get_clusters_with_hashes(minItemsInCluster))
-else:
-    result = list(cluster.get_clusters(minItemsInCluster))
-wFile = open(outputFilename, "w")
-wFile.write("{\n")
-wFile.write("\"numClusters\":" + str(len(result)) + ",\n")
-wFile.write("\"lshSettings\":\n")
-wFile.write("\t{\n")
-wFile.write("\t\"numHashes\":" + str(numHashes) + ",\n")
-wFile.write("\t\"numItemsInBand\":" + str(numItemsInBand) + "\n")
-wFile.write("\t},\n")
-wFile.write("\"clusters\":\n")
-
-wFile.write("\t[\n")
-sep = ""
-for cluster_item in result:
-    wFile.write(sep)
-    wFile.write("\t{\"cluster\": \n")
-    # print cluster_item
-    str = json.dumps(cluster_item, indent=16)
-    str = str[1:len(str)-1]
-    wFile.write("\t\t[" + str + "\t\t]\n")
-    wFile.write("\t}")
-    sep = ",\n"
-wFile.write("\t]\n")
-wFile.write("}\n")
+    if c_options.outputformat == "text":
+        result.saveAsTextFile(outputFilename)
+    else:
+        result.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename)

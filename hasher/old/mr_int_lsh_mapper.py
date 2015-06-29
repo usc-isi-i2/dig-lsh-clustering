@@ -1,7 +1,9 @@
 __author__ = 'dipsy'
 
 import sys
-from hasher.lsh.lsh import IntegerLSH, IntegerMinHashSignature
+
+from hasher.lsh import IntegerLSH, IntegerMinHashSignature
+
 
 numHashes = 100
 numItemsInBand = 10

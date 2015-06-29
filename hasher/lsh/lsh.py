@@ -7,8 +7,7 @@ Algorithms based on 'Mining of Massive Datasets'
 from collections import defaultdict
 import hashlib
 
-from hasher.lsh.unionfind import UnionFind
-#import numpy
+from unionfind import UnionFind
 
 class Signature(object):
     """Signature Base class."""
@@ -32,7 +31,7 @@ class MinHashSignature(Signature):
     def hash_functions(self):
         """Return dim different hash functions"""
         def hash_factory(n):
-            return lambda x: hashlib.sha1(str(n) + x).hexdigest()
+            return lambda x: hashlib.sha1((str(n) + x).encode('utf-8')).hexdigest()
              #return lambda x: hash("salt" + unicode(n) + unicode(x) + "salt")
 
         return [ hash_factory(_) for _ in range(self.dim) ]

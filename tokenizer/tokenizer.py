@@ -5,7 +5,7 @@ from optparse import OptionParser
 from inputParser.InputParserFactory import ParserFactory
 from RowTokenizer import RowTokenizer
 import json
-
+import pickle
 
 class Tokenizer:
     def __init__(self, config_filename, p_options):
@@ -42,20 +42,18 @@ class Tokenizer:
 
 if __name__ == "__main__":
     """
-        Usage: tokenizer.py [input] [output] [reducer:feature_name]...
+        Usage: tokenizer.py [input] [config] [output]
     """
     sc = SparkContext(appName="LSH-TOKENIZER")
 
     usage = "usage: %prog [options] input config output"
     parser = OptionParser()
-    parser.add_option("-s", "--separator", dest="separator", type="string",
+    parser.add_option("-r", "--separator", dest="separator", type="string",
                       help="field separator", default="\t")
-    parser.add_option("-t", "--type", dest="data_type", type="string",
+    parser.add_option("-d", "--type", dest="data_type", type="string",
                       help="input data type: csv/json", default="csv")
     parser.add_option("-i", "--inputformat", dest="inputformat", type="string",
                       help="input file format: text/sequence", default="text")
-    parser.add_option("-o", "--outputformat", dest="outputformat", type="string",
-                      help="output file format: text/sequence", default="text")
 
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
@@ -69,7 +67,4 @@ if __name__ == "__main__":
     else:
         rdd = tokenizer.tokenize_seq_file(sc, inputFilename, c_options.data_type)
 
-    if c_options.outputformat == "text":
-        rdd.saveAsTextFile(outputFilename)
-    else:
-        rdd.mapValues(lambda x: "\t".join(x)).saveAsSequenceFile(outputFilename)
+    rdd.mapValues(lambda x: json.dumps(x)).saveAsSequenceFile(outputFilename)
