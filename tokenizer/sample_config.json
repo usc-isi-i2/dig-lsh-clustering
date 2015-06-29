@@ -1,0 +1,106 @@
+{
+  "fieldConfig": {
+    "0": {
+      "prefix": "city:",
+      "allow_blank":false,
+      "analyzer": {
+        "filters":[
+          "lowercase"
+        ],
+        "tokenizers":[
+          "character_n_3"
+        ]
+      }
+    },
+    "1": {
+      "prefix": "state:",
+      "allow_blank":true
+    },
+    "2":{
+      "prefix":"country:",
+      "allow_blank":true
+    }
+  },
+  "defaultConfig": {
+
+    "analyzer": {
+      "allow_blank_field_tokens":false,
+      "replacements": [
+        {
+          "regex": "[^\\w\\s]",
+          "replacement": "",
+          "description": "replace special chars"
+        },
+        {
+          "regex": "\"",
+          "replacement": "",
+          "description": "replace quotes"
+        },
+        {
+          "regex": "\\s+",
+          "replacement": " ",
+          "description": "replace multiple spaces by a single one"
+        }
+      ],
+      "filters": [
+        "lowercase",
+        "latin",
+        "stop_default"
+      ],
+      "tokenizers": [
+        "whitespace"
+      ]
+    }
+  },
+  "settings": {
+    "word_n_2": {
+      "type": "word_ngram",
+      "size": 2
+    },
+    "character_n_3": {
+      "type": "character_ngram",
+      "size": 3
+    },
+    "stop_default": {
+      "type": "stop",
+      "words": [
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "but",
+        "by",
+        "for",
+        "if",
+        "in",
+        "into",
+        "is",
+        "it",
+        "no",
+        "not",
+        "of",
+        "on",
+        "or",
+        "such",
+        "that",
+        "the",
+        "their",
+        "then",
+        "there",
+        "these",
+        "they",
+        "this",
+        "to",
+        "was",
+        "will",
+        "with",
+        "-",
+        ";",
+        ",",
+        "_",
+        "+",
+        "\/",
+        "\\"]}}}
