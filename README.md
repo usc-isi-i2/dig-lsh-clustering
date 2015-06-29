@@ -24,6 +24,7 @@ To view all options, you can pass --help to the programs. Example:
 Example Invocation:
 ```
  zip -r lsh.zip tokenizer hasher clusterer
+ cd <spark-folder>
 ./bin/spark-submit \
     --master local[*] \
     --py-files ~/github/dig-lsh-clustering/lsh.zip \
