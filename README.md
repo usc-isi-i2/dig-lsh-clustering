@@ -6,7 +6,7 @@ Clustering documents based on LSH
 
 Requirements:
 -------------
-Download and unzip spark in <spark-folder>
+Download and unzip spark in ```<spark-folder>```
 
 You can run the clustering using a One Step driver - runLSH.py or using 3 steps - tokenization, hashing and then clustering
 
