@@ -16,17 +16,18 @@ class Clusterer:
     def compute_clusters_with_base(self, data, base):
         lsh_clusters = data.join(base)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_clusters_with_base(x[0],list(x[1])))
+        return self.__deduplicate_clusters(clusters_with_dups)
+
+    def compute_clusters(self, data):
+        lsh_clusters = data.groupByKey()
+        clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
+        return self.__deduplicate_clusters(clusters_with_dups)
+
+    def __deduplicate_clusters(self, clusters_with_dups):
         clusters_no_dups = clusters_with_dups.groupByKey().mapValues(lambda x:
                                                                           list(self.__remove_duplicates(list(x)))
         )
         return clusters_no_dups.flatMapValues(lambda x: self.__compute_similarity(x))
-
-    def compute_clusters(self, data):
-        # lsh_clusters = data.groupByKey()
-        # clusters_with_dups = lsh_clusters.flatMap(lambda x : (x[0], self.__output_cluster(list(x[1]))))
-        # clusters_no_dups = clusters_with_dups.groupByKey().flatMap(lambda x: (x[0], set(list(x[1]))))
-        # return clusters_no_dups.flatMap(lambda x: (x[0][0], list(self.__compute_similarity(x[0], list(x[1])))))
-        pass
 
     def __output_clusters_with_base(self, lsh_key, cluster):
         data = cluster[0]
@@ -34,15 +35,19 @@ class Clusterer:
         matches = cluster[1:]
         for match in matches:
             arr_hashes = [data[1], match[1]]
-            result = [match[0], arr_hashes]
-            yield key, result
+            match_with_data = [match[0], arr_hashes]
+            yield key, match_with_data
 
     def __output_cluster(self, lsh_key, cluster):
         if len(cluster) > 0 :
-            for elem1 in cluster:
-                for elem2 in cluster:
-                    if elem1[0] < elem2[0]:
-                        yield elem1, elem2
+            for data in cluster:
+                key1 = data[0]
+                for match in cluster:
+                    key2 = match[0]
+                    if key1 < key2:
+                        arr_hashes = [data[1], match[1]]
+                        match_with_data = [match[0], arr_hashes]
+                        yield key1, match_with_data
 
     def __compute_similarity(self, matches):
         for match in matches:

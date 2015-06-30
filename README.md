@@ -6,7 +6,7 @@ Clustering documents based on LSH
 
 Requirements:
 -------------
-Download and unzip spark in ```<spark-folder>```
+* Spark: Visit http://spark.apache.org/downloads.html, select the package type of “Pre-built for Hadoop 2.4 and later,” and then click on the link for “Download Spark” This will download a compressed TAR file, or tarball. Uncompress the file into ```<spark-folder>```.
 
 You can run the clustering using a One Step driver - runLSH.py or using 3 steps - tokenization, hashing and then clustering
 
@@ -39,6 +39,20 @@ Example Invocation:
 The output is in text file format. If you wish to generate the output as
 a text file, pass ```--outputformat sequence``` as a parameter
 
+To cluster a dataset (i.e. not against a base dataset, but to find clusters within itself),
+omit the --base parameter while clustering
+Example Invocation:
+```
+./bin/spark-submit \
+    --master local[*] \
+    --py-files ~/github/dig-lsh-clustering/lsh.zip \
+    ~/github/dig-lsh-clustering/runLSH.py \
+    --numHashes 50 --numItemsInBand 5 \
+    --computeSimilarity \
+    ~/github/dig-lsh-clustering/datasets/geonames/sample.tsv \
+    ~/github/dig-lsh-clustering/datasets/city_state_country_config.json \
+    ~/github/dig-lsh-clustering/datasets/geonames/clusters
+```
 
 Running tokenization, LSH, clustering Step-by-Step
 --------------------------------------------------

@@ -19,7 +19,7 @@ datasets/sample-ad-location/hashes/*
 datasets/sample-ad-location/geonames-clusters/*
 datasets/geonames/tokens/*
 datasets/geonames/hashes/*
-
+datasets/geonames/clusters/*
 
 *.zip
 
