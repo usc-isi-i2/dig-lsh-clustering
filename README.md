@@ -30,6 +30,7 @@ Example Invocation:
     --py-files ~/github/dig-lsh-clustering/lsh.zip \
     ~/github/dig-lsh-clustering/runLSH.py \
     --base ~/github/dig-lsh-clustering/datasets/geonames/sample.tsv \
+    --baseConfig ~/github/dig-lsh-clustering/datasets/city_state_country_config.json \
     --numHashes 50 --numItemsInBand 5 \
     --computeSimilarity \
     ~/github/dig-lsh-clustering/datasets/sample-ad-location/sample.tsv \

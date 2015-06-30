@@ -31,6 +31,8 @@ if __name__ == "__main__":
                       dest="threshold", default=0.0, help="similarity threshold")
     parser.add_option("-e", "--base", dest="base", type="string",
                       help="base file", default="")
+    parser.add_option("-c", "--baseConfig", dest="baseConfig", type="string",
+                      help="base config file", default="")
     parser.add_option("-o", "--outputformat", dest="outputformat", type="string",
                       help="output file format: text/sequence", default="text")
 
@@ -52,6 +54,8 @@ if __name__ == "__main__":
                           c_options.computeSimilarity, c_options.threshold)
 
     if len(c_options.base) > 0:
+        if len(c_options.baseConfig) > 0:
+            tokenizer = Tokenizer(c_options.baseConfig, c_options)
         if c_options.inputformat == "text":
             base_rdd = tokenizer.tokenize_text_file(sc, c_options.base, c_options.data_type)
         else:
