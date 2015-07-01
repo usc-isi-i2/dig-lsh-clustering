@@ -3,7 +3,7 @@
 from pyspark import SparkContext
 from optparse import OptionParser
 import json
-
+import hashlib
 
 class Clusterer:
     def __init__(self, p_numHashes, p_numItemsInBand, p_computeSimilarity, p_threshold):
@@ -11,7 +11,6 @@ class Clusterer:
         self.numItemsInBand = p_numItemsInBand
         self.computeSimilarity = p_computeSimilarity
         self.threshold = p_threshold
-        pass
 
     def compute_clusters_with_base(self, data, base):
         lsh_clusters = data.join(base)
@@ -22,6 +21,13 @@ class Clusterer:
         lsh_clusters = data.groupByKey()
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
         return self.__deduplicate_clusters(clusters_with_dups)
+
+    def compute_identical_clusters(self, data):
+        lsh_clusters = data.groupByKey()
+        key_clusters = lsh_clusters.flatMap(lambda x: self.__output_key_cluster_ids(x[0], list(x[1])))
+        clusterid_clusters = lsh_clusters.flatMap(lambda x: self.__output_cluster_ids_minhash(x[0], list(x[1])))
+        clusters_with_dups = clusterid_clusters.groupByKey().flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
+        return key_clusters, self.__deduplicate_clusters(clusters_with_dups)
 
     def __deduplicate_clusters(self, clusters_with_dups):
         clusters_no_dups = clusters_with_dups.groupByKey().mapValues(lambda x:
@@ -49,6 +55,22 @@ class Clusterer:
                         match_with_data = [match[0], arr_hashes]
                         yield key1, match_with_data
 
+    def __output_key_cluster_ids(self, lsh_key, cluster):
+        if len(cluster) > 0 :
+            for data in cluster:
+                key = data[0]
+                hashes = data[1]
+                cluster_id = hashlib.sha1(",".join(hashes)).hexdigest()
+                yield key, cluster_id
+
+    def __output_cluster_ids_minhash(self, lsh_key, cluster):
+        if len(cluster) > 0 :
+            for data in cluster:
+                key = data[0]
+                hashes = data[1]
+                cluster_id = hashlib.sha1(",".join(hashes)).hexdigest()
+                yield lsh_key, (cluster_id, hashes)
+
     def __compute_similarity(self, matches):
         for match in matches:
             if self.computeSimilarity is True:
@@ -57,7 +79,8 @@ class Clusterer:
                 #print "Got match", match_hashes
                 #print "Got minhash:", key_minhash
                 score = self.__compute_list_similarity_score(key_minhash, match_hashes)
-                yield (match[0], score)
+                if score > self.threshold:
+                    yield (match[0], score)
             else:
                 yield match[0]
 
@@ -89,6 +112,8 @@ if __name__ == "__main__":
                       help="number of items in each band", default=10)
     parser.add_option("-s", "--computeSimilarity", action="store_true",
                       dest="computeSimilarity", default=False, help="compute similarity")
+    parser.add_option("-j", "--computeIdenticalClusters", action="store_true",
+                      dest="computeIdenticalClusters", default=False, help="compute identical clusters")
     parser.add_option("-t", "--threshold", type="float",
                       dest="threshold", default=0.0, help="similarity threshold")
     parser.add_option("-e", "--base", dest="base", type="string",
@@ -110,9 +135,18 @@ if __name__ == "__main__":
         base = sc.sequenceFile(c_options.base).mapValues(lambda x: json.loads(x))
         result = clusterer.compute_clusters_with_base(rdd, base)
     else:
-        result = clusterer.compute_clusters(rdd)
+        if c_options.computeIdenticalClusters is True:
+            (key_clusterids, result) = clusterer.compute_identical_clusters(rdd)
+        else:
+            result = clusterer.compute_clusters(rdd)
 
     if c_options.outputformat == "text":
         result.saveAsTextFile(outputFilename)
+        if key_clusterids:
+            key_clusterids.saveAsTextFile(outputFilename + "-key-clusterids")
     else:
         result.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename)
+        if key_clusterids:
+            key_clusterids.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename + "-key-clusterids")
+
+
