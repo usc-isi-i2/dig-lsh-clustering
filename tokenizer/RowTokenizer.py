@@ -42,11 +42,11 @@ class RowTokenizer:
                 analyzer = self.config["defaultConfig"]["analyzer"]
             dict_analyzer[index] = analyzer
 
-        # print "Tokenize row:", row
+        #print "Tokenize row:", row
         multi_lines = self.__get_cross_product(dict_blank_fields, row)
         for line in multi_lines:
             tokens = []
-            # print "Got line:", line
+            #print "Got line:", line
             for index, field_value in enumerate(line):
                 field_tokens = self.__analyze_field(field_value,
                                                         dict_prefix[index],
@@ -109,9 +109,10 @@ class RowTokenizer:
     # does regex evaluations specified in configuration file, converts to utf8, lowercase
     #returns the tokens character or word
     def __analyze_field(self, text, prefix, analyzer, settings):
+        text = text.encode('utf-8')
         if "replacements" in analyzer:
             for replacement in analyzer["replacements"]:
-                text = re.sub(replacement['regex'], replacement['replacement'], text, flags=re.UNICODE)
+                text = re.sub(replacement['regex'], replacement['replacement'], text)
 
         if "filters" in analyzer:
             for filter_name in analyzer["filters"]:

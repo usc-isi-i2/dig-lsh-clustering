@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from pyspark import SparkContext
+
 from optparse import OptionParser
 from tokenizer.tokenizer import Tokenizer
 from hasher.hasher import Hasher
@@ -27,6 +28,8 @@ if __name__ == "__main__":
                       help="number of items in each band", default=10)
     parser.add_option("-s", "--computeSimilarity", action="store_true",
                       dest="computeSimilarity", default=False, help="compute similarity")
+    parser.add_option("-j", "--computeIdenticalClusters", action="store_true",
+                      dest="computeIdenticalClusters", default=False, help="compute identical clusters")
     parser.add_option("-t", "--threshold", type="float",
                       dest="threshold", default=0.0, help="similarity threshold")
     parser.add_option("-e", "--base", dest="base", type="string",
@@ -63,9 +66,16 @@ if __name__ == "__main__":
         base_lsh_rdd = hasher.compute_hashes(base_rdd)
         result = clusterer.compute_clusters_with_base(input_lsh_rdd, base_lsh_rdd)
     else:
-        result = clusterer.compute_clusters(input_lsh_rdd)
+        if c_options.computeIdenticalClusters is True:
+            (key_clusterids, result) = clusterer.compute_identical_clusters(input_lsh_rdd)
+        else:
+            result = clusterer.compute_clusters(input_lsh_rdd)
 
     if c_options.outputformat == "text":
+        if c_options.computeIdenticalClusters is True:
+            key_clusterids.saveAsTextFile(outputFilename + "-key-clusterids")
         result.saveAsTextFile(outputFilename)
     else:
+        if c_options.computeIdenticalClusters is True:
+            key_clusterids.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename + "-key-clusterids")
         result.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename)

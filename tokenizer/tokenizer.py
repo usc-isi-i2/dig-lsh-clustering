@@ -36,6 +36,7 @@ class Tokenizer:
 
         line = row_tokenizer.next()
         while line:
+            #print "RETURN", line[0:100]
             yield line
             line = row_tokenizer.next()
 
@@ -67,4 +68,5 @@ if __name__ == "__main__":
     else:
         rdd = tokenizer.tokenize_seq_file(sc, inputFilename, c_options.data_type)
 
+    #rdd.saveAsTextFile(outputFilename)
     rdd.mapValues(lambda x: json.dumps(x)).saveAsSequenceFile(outputFilename)

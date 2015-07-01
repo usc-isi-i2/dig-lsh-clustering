@@ -4,6 +4,7 @@ from pyspark import SparkContext
 from optparse import OptionParser
 import json
 import hashlib
+from pyspark import StorageLevel
 
 class Clusterer:
     def __init__(self, p_numHashes, p_numItemsInBand, p_computeSimilarity, p_threshold):
@@ -13,24 +14,25 @@ class Clusterer:
         self.threshold = p_threshold
 
     def compute_clusters_with_base(self, data, base):
-        lsh_clusters = data.join(base)
+        lsh_clusters = data.join(base, 10)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_clusters_with_base(x[0],list(x[1])))
         return self.__deduplicate_clusters(clusters_with_dups)
 
     def compute_clusters(self, data):
-        lsh_clusters = data.groupByKey()
+        lsh_clusters = data.groupByKey(10)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
         return self.__deduplicate_clusters(clusters_with_dups)
 
     def compute_identical_clusters(self, data):
-        lsh_clusters = data.groupByKey()
+        lsh_clusters = data.groupByKey(10)
+        lsh_clusters.persist(StorageLevel.MEMORY_AND_DISK)
         key_clusters = lsh_clusters.flatMap(lambda x: self.__output_key_cluster_ids(x[0], list(x[1])))
         clusterid_clusters = lsh_clusters.flatMap(lambda x: self.__output_cluster_ids_minhash(x[0], list(x[1])))
         clusters_with_dups = clusterid_clusters.groupByKey().flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
         return key_clusters, self.__deduplicate_clusters(clusters_with_dups)
 
     def __deduplicate_clusters(self, clusters_with_dups):
-        clusters_no_dups = clusters_with_dups.groupByKey().mapValues(lambda x:
+        clusters_no_dups = clusters_with_dups.groupByKey(10).mapValues(lambda x:
                                                                           list(self.__remove_duplicates(list(x)))
         )
         return clusters_no_dups.flatMapValues(lambda x: self.__compute_similarity(x))
