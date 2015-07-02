@@ -31,10 +31,20 @@ class MinHashSignature(Signature):
     def hash_functions(self):
         """Return dim different hash functions"""
         def hash_factory(n):
-            return lambda x: hashlib.sha1((str(n) + x).encode('utf-8')).hexdigest()
+            return lambda x: self.hash(x, n)
              #return lambda x: hash("salt" + unicode(n) + unicode(x) + "salt")
 
         return [ hash_factory(_) for _ in range(self.dim) ]
+
+    def hash(self, x, n):
+        str_n = str(n)
+        try:
+            return hashlib.md5(str_n + x).hexdigest()
+        except:
+            print "x:", type(x)
+            print "n:", type(n)
+            print "str:", type(str_n)
+            pass
 
     def sign(self, s):
         """Returns minhash signature for set s"""

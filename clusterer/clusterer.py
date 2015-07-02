@@ -7,24 +7,25 @@ import hashlib
 from pyspark import StorageLevel
 
 class Clusterer:
-    def __init__(self, p_numHashes, p_numItemsInBand, p_computeSimilarity, p_threshold):
+    def __init__(self, p_numPartitions, p_numHashes, p_numItemsInBand, p_computeSimilarity, p_threshold):
+        self.numPartitions = p_numPartitions
         self.numHashes = p_numHashes
         self.numItemsInBand = p_numItemsInBand
         self.computeSimilarity = p_computeSimilarity
         self.threshold = p_threshold
 
     def compute_clusters_with_base(self, data, base):
-        lsh_clusters = data.join(base, 10)
+        lsh_clusters = data.join(base, self.numPartitions)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_clusters_with_base(x[0],list(x[1])))
         return self.__deduplicate_clusters(clusters_with_dups)
 
     def compute_clusters(self, data):
-        lsh_clusters = data.groupByKey(10)
+        lsh_clusters = data.groupByKey(self.numPartitions)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
         return self.__deduplicate_clusters(clusters_with_dups)
 
     def compute_identical_clusters(self, data):
-        lsh_clusters = data.groupByKey(10)
+        lsh_clusters = data.groupByKey(self.numPartitions)
         lsh_clusters.persist(StorageLevel.MEMORY_AND_DISK)
         key_clusters = lsh_clusters.flatMap(lambda x: self.__output_key_cluster_ids(x[0], list(x[1])))
         clusterid_clusters = lsh_clusters.flatMap(lambda x: self.__output_cluster_ids_minhash(x[0], list(x[1])))
@@ -32,12 +33,14 @@ class Clusterer:
         return key_clusters, self.__deduplicate_clusters(clusters_with_dups)
 
     def __deduplicate_clusters(self, clusters_with_dups):
-        clusters_no_dups = clusters_with_dups.groupByKey(10).mapValues(lambda x:
+        clusters_no_dups = clusters_with_dups.groupByKey(self.numPartitions).mapValues(lambda x:
                                                                           list(self.__remove_duplicates(list(x)))
         )
         return clusters_no_dups.flatMapValues(lambda x: self.__compute_similarity(x))
 
     def __output_clusters_with_base(self, lsh_key, cluster):
+        #print "Output clusters for key:", lsh_key
+
         data = cluster[0]
         key = data[0]
         matches = cluster[1:]
@@ -122,7 +125,8 @@ if __name__ == "__main__":
                       help="base file", default="")
     parser.add_option("-o", "--outputformat", dest="outputformat", type="string",
                       help="output file format: text/sequence", default="text")
-
+    parser.add_option("-x", "--numPartitions", dest="numPartitions", type="int",
+                      help="number of partitions", default=1000)
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
 
@@ -130,7 +134,7 @@ if __name__ == "__main__":
     outputFilename = args[1]
     print "Save to:", outputFilename
 
-    clusterer = Clusterer(c_options.numHashes, c_options.numItemsInBand,
+    clusterer = Clusterer(c_options.numPartitions, c_options.numHashes, c_options.numItemsInBand,
                           c_options.computeSimilarity, c_options.threshold)
     rdd = sc.sequenceFile(inputFilename).mapValues(lambda x: json.loads(x))
     if len(c_options.base) > 0:

@@ -38,6 +38,8 @@ if __name__ == "__main__":
                       help="base config file", default="")
     parser.add_option("-o", "--outputformat", dest="outputformat", type="string",
                       help="output file format: text/sequence", default="text")
+    parser.add_option("-x", "--numPartitions", dest="numPartitions", type="int",
+                      help="number of partitions", default=10000)
 
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
@@ -50,10 +52,12 @@ if __name__ == "__main__":
         rdd = tokenizer.tokenize_text_file(sc, inputFilename, c_options.data_type)
     else:
         rdd = tokenizer.tokenize_seq_file(sc, inputFilename, c_options.data_type)
+    rdd.partitionBy(c_options.numPartitions)
+
     hasher = Hasher(c_options.numHashes, c_options.numItemsInBand, c_options.computeSimilarity)
     input_lsh_rdd = hasher.compute_hashes(rdd)
 
-    clusterer = Clusterer(c_options.numHashes, c_options.numItemsInBand,
+    clusterer = Clusterer(c_options.numPartitions, c_options.numHashes, c_options.numItemsInBand,
                           c_options.computeSimilarity, c_options.threshold)
 
     if len(c_options.base) > 0:
@@ -63,6 +67,8 @@ if __name__ == "__main__":
             base_rdd = tokenizer.tokenize_text_file(sc, c_options.base, c_options.data_type)
         else:
             base_rdd = tokenizer.tokenize_seq_file(sc, c_options.base, c_options.data_type)
+        base_rdd.partitionBy(c_options.numPartitions)
+
         base_lsh_rdd = hasher.compute_hashes(base_rdd)
         result = clusterer.compute_clusters_with_base(input_lsh_rdd, base_lsh_rdd)
     else:
