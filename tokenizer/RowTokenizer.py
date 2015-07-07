@@ -148,6 +148,7 @@ class RowTokenizer:
         for token in tokens:
             # print "Got:", type(prefix)
             # print  type(token)
-            final_tokens.append(prefix.encode('utf-8') + token)
+            if len(token) > 0:
+                final_tokens.append(prefix.encode('utf-8') + token)
 
         return final_tokens

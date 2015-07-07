@@ -31,7 +31,7 @@ Example Invocation:
     --driver-memory=4g \
     --py-files ~/github/dig-lsh-clustering/lsh.zip \
     ~/github/dig-lsh-clustering/runLSH.py \
-    --numPartitions 100000 \
+    --numPartitions 100 \
     --base ~/github/dig-lsh-clustering/datasets/geonames/sample.tsv \
     --baseConfig ~/github/dig-lsh-clustering/datasets/city_state_country_config.json \
     --numHashes 50 --numItemsInBand 5 \

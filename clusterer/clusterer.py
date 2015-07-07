@@ -33,14 +33,11 @@ class Clusterer:
         return key_clusters, self.__deduplicate_clusters(clusters_with_dups)
 
     def __deduplicate_clusters(self, clusters_with_dups):
-        clusters_no_dups = clusters_with_dups.groupByKey(self.numPartitions).mapValues(lambda x:
-                                                                          list(self.__remove_duplicates(list(x)))
-        )
+        clusters_no_dups = clusters_with_dups.reduceByKey(lambda value1, value2: self.__check_duplicate(value1, value2))
         return clusters_no_dups.flatMapValues(lambda x: self.__compute_similarity(x))
 
     def __output_clusters_with_base(self, lsh_key, cluster):
         #print "Output clusters for key:", lsh_key
-
         data = cluster[0]
         key = data[0]
         matches = cluster[1:]
@@ -77,17 +74,22 @@ class Clusterer:
                 yield lsh_key, (cluster_id, hashes)
 
     def __compute_similarity(self, matches):
-        for match in matches:
+        # print "Compite similarity:", matches
+
+        for i in self.custom_range(0, len(matches)-1, 2):
+            match = matches[i]
+            hashes = matches[i+1]
+            # print "Got match:", match
+            # print "Got hashes:", hashes
+
             if self.computeSimilarity is True:
-                key_minhash = match[1][0]
-                match_hashes = match[1][1]
-                #print "Got match", match_hashes
-                #print "Got minhash:", key_minhash
+                key_minhash = hashes[0]
+                match_hashes = hashes[1]
                 score = self.__compute_list_similarity_score(key_minhash, match_hashes)
                 if score > self.threshold:
-                    yield (match[0], score)
+                    yield (match, score)
             else:
-                yield match[0]
+                yield match
 
     def __compute_list_similarity_score(self, list1, list2):
         similarity = float(len(set(list1) & set(list2)))/float(len(set(list1)))
@@ -102,6 +104,35 @@ class Clusterer:
             else:
                 seen.append(x[0])
                 yield x
+
+    def custom_range(self, start, end, step):
+        while start <= end:
+            yield start
+            start += step
+
+    def __check_duplicate(self, value1, value2):
+        if value1 is None:
+            return value2
+        if value2 is None:
+            return value1
+
+        seen = list()
+        for i in self.custom_range(0, len(value1)-1, 2):
+            key = value1[i]
+            #print "Added to see:", i, ":", key
+            seen.append(key)
+
+
+        for i in self.custom_range(0, len(value2)-1, 2):
+            key = value2[i]
+            if key in seen:
+                continue
+            seen.append(key)
+            #print "Added new:", key
+            value1.append(value2[i])
+            value1.append(value2[i+1])
+
+        return value1
 
 if __name__ == "__main__":
     """
@@ -148,11 +179,11 @@ if __name__ == "__main__":
 
     if c_options.outputformat == "text":
         result.saveAsTextFile(outputFilename)
-        if key_clusterids:
+        if c_options.computeIdenticalClusters is True:
             key_clusterids.saveAsTextFile(outputFilename + "-key-clusterids")
     else:
         result.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename)
-        if key_clusterids:
+        if c_options.computeIdenticalClusters is True:
             key_clusterids.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename + "-key-clusterids")
 
 

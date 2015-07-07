@@ -6,8 +6,10 @@ Algorithms based on 'Mining of Massive Datasets'
 
 from collections import defaultdict
 import hashlib
-
+import sys
+import traceback
 from unionfind import UnionFind
+import unicodedata
 
 class Signature(object):
     """Signature Base class."""
@@ -39,11 +41,14 @@ class MinHashSignature(Signature):
     def hash(self, x, n):
         str_n = str(n)
         try:
-            return hashlib.md5(str_n + x).hexdigest()
+            combined = unicode(str_n) + unicode(x)
+            return hashlib.md5(unicodedata.normalize('NFKD', combined).encode('utf-8')).hexdigest()
         except:
             print "x:", type(x)
             print "n:", type(n)
-            print "str:", type(str_n)
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            sys.stderr.write("\nError in hashing:" + str(lines))
             pass
 
     def sign(self, s):
