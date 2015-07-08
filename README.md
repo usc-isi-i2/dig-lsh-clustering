@@ -93,7 +93,7 @@ tokenizer.py [options] inputFile configFile outputDir
 Example Invocation:
 ```
 cd tokenizer
-zip -r tokenizer.zip RowTokenizer.py inputParser
+zip -r tokenizer.zip RowTokenizer.py inputParser ngram
 cd <spark-folder>
 ./bin/spark-submit \
     --master local[*] \
