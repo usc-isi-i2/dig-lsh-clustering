@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import ngram
+from ngram import ngram
 import re
 import unicodedata
 import itertools

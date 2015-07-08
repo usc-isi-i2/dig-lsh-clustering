@@ -5,7 +5,6 @@ from optparse import OptionParser
 from inputParser.InputParserFactory import ParserFactory
 from RowTokenizer import RowTokenizer
 import json
-import pickle
 
 class Tokenizer:
     def __init__(self, config_filename, p_options):

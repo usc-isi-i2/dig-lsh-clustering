@@ -24,7 +24,6 @@
   "defaultConfig": {
 
     "analyzer": {
-      "allow_blank_field_tokens":false,
       "replacements": [
         {
           "regex": "[^\\w\\s]",
