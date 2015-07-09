@@ -78,7 +78,7 @@ class Clusterer:
     def __generate_csv(self, key, matches, separator):
         for match in matches:
             if type(match) is list or type(match) is dict or type(match) is tuple:
-                yield str(key) + separator + str(match[0]) + separator + match[1]
+                yield str(key) + separator + str(match[0]) + separator + str(match[1])
             else:
                 yield str(key) + separator + str(match)
 
