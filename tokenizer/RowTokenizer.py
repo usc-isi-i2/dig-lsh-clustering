@@ -130,6 +130,7 @@ class RowTokenizer:
                         tokens = self.__tokenize_input_stopwords(text, words)
                         text = " ".join(tokens)
 
+        text = text.decode('ASCII', 'ignore')
         tokens = []
         if "tokenizers" in analyzer:
             for tokenizer in analyzer["tokenizers"]:

@@ -32,9 +32,60 @@ class Clusterer:
         clusters_with_dups = clusterid_clusters.groupByKey().flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
         return key_clusters, self.__deduplicate_clusters(clusters_with_dups)
 
+    def output_csv(self, data, top_k, separator):
+        if self.computeSimilarity is True and top_k != -1:
+            top_data = data.mapValues(lambda x: self.__get_top_k(x, top_k))
+        else:
+            top_data = data
+        return top_data.flatMap(lambda x: list(self.__generate_csv(x[0], x[1], separator)))
+
+    def output_json(self, data, top_k):
+        if self.computeSimilarity is True and top_k != -1:
+            top_data = data.mapValues(lambda x: self.__get_top_k(x, top_k))
+        else:
+            top_data = data
+        return top_data.map(lambda x: self.__generate_json(x[0], x[1]))
+
+    def __get_top_k(self, matches, top_k):
+        sorted_matches = sorted(matches, key=lambda x: float(x[1]), reverse=True)
+        result = []
+        current_score = 0
+        for match in sorted_matches:
+            score = match[1]
+            if len(result) < top_k:
+                result.append(match)
+                current_score = score
+            elif score == current_score:
+                result.append(match)
+            else:
+                break
+        return result
+
+    def __generate_json(self, key, matches):
+        json_obj = {"source": str(key), "candidates":[]}
+        for match in matches:
+            # print "Match:", type(match), ", ", match
+            candidate = {}
+            if type(match) is list or type(match) is dict or type(match) is tuple:
+                candidate["uri"] = str(match[0])
+                candidate["score"] = match[1]
+            else:
+                candidate["uri"] = str(match)
+            json_obj["candidates"].append(candidate)
+        return json_obj
+
+
+    def __generate_csv(self, key, matches, separator):
+        for match in matches:
+            if type(match) is list or type(match) is dict or type(match) is tuple:
+                yield str(key) + separator + str(match[0]) + separator + match[1]
+            else:
+                yield str(key) + separator + str(match)
+
+
     def __deduplicate_clusters(self, clusters_with_dups):
         clusters_no_dups = clusters_with_dups.reduceByKey(lambda value1, value2: self.__check_duplicate(value1, value2))
-        return clusters_no_dups.flatMapValues(lambda x: self.__compute_similarity(x))
+        return clusters_no_dups.mapValues(lambda x: list(self.__compute_similarity(x)))
 
     def __output_clusters_with_base(self, lsh_key, cluster):
         #print "Output clusters for key:", lsh_key
@@ -142,6 +193,8 @@ if __name__ == "__main__":
 
     usage = "usage: %prog [options] input1 input1Prefix <input2> <input2Prefix> output"
     parser = OptionParser()
+    parser.add_option("-r", "--separator", dest="separator", type="string",
+                      help="field separator", default="\t")
     parser.add_option("-n", "--numHashes", dest="numHashes", type="int",
                       help="number of minhashes", default=100)
     parser.add_option("-b", "--numItemsInBand", dest="numItemsInBand", type="int",
@@ -156,8 +209,12 @@ if __name__ == "__main__":
                       help="base file", default="")
     parser.add_option("-o", "--outputformat", dest="outputformat", type="string",
                       help="output file format: text/sequence", default="text")
+    parser.add_option("-y", "--outputtype", dest="outputtype", type="string",
+                      help="output type: csv/json", default="json")
+    parser.add_option("-k", "--topk", dest="topk", type="int",
+                      help="top n matches", default=3)
     parser.add_option("-x", "--numPartitions", dest="numPartitions", type="int",
-                      help="number of partitions", default=1000)
+                      help="number of partitions", default=10)
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
 
@@ -176,6 +233,11 @@ if __name__ == "__main__":
             (key_clusterids, result) = clusterer.compute_identical_clusters(rdd)
         else:
             result = clusterer.compute_clusters(rdd)
+
+    if c_options.outputtype == "json":
+        result = clusterer.output_json(result, c_options.topk)
+    else:
+        result = clusterer.output_csv(result, c_options.topk, c_options.separator)
 
     if c_options.outputformat == "text":
         result.saveAsTextFile(outputFilename)

@@ -9,7 +9,6 @@ import hashlib
 import sys
 import traceback
 from unionfind import UnionFind
-import unicodedata
 
 class Signature(object):
     """Signature Base class."""
@@ -41,8 +40,8 @@ class MinHashSignature(Signature):
     def hash(self, x, n):
         str_n = str(n)
         try:
-            combined = unicode(str_n) + unicode(x)
-            return hashlib.md5(unicodedata.normalize('NFKD', combined).encode('utf-8')).hexdigest()
+            combined = str_n + x.encode('ASCII', 'ignore')
+            return hashlib.md5(combined).hexdigest()
         except:
             print "x:", type(x)
             print "n:", type(n)

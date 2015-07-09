@@ -10,7 +10,7 @@
     },
     "2": {
       "prefix": "",
-      "allow_blank": false
+      "allow_blank": true
     }
   },
   "defaultConfig": {

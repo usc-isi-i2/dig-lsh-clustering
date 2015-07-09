@@ -1,6 +1,7 @@
 {
   "fieldConfig": {
     "0": {
+      "path": "availableAtOrFrom.address.name",
       "prefix": "",
       "allow_blank":false
       }

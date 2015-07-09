@@ -39,7 +39,11 @@ if __name__ == "__main__":
     parser.add_option("-o", "--outputformat", dest="outputformat", type="string",
                       help="output file format: text/sequence", default="text")
     parser.add_option("-x", "--numPartitions", dest="numPartitions", type="int",
-                      help="number of partitions", default=10000)
+                      help="number of partitions", default=10)
+    parser.add_option("-y", "--outputtype", dest="outputtype", type="string",
+                      help="output type: csv/json", default="json")
+    parser.add_option("-k", "--topk", dest="topk", type="int",
+                      help="top n matches", default=3)
 
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
@@ -76,6 +80,11 @@ if __name__ == "__main__":
             (key_clusterids, result) = clusterer.compute_identical_clusters(input_lsh_rdd)
         else:
             result = clusterer.compute_clusters(input_lsh_rdd)
+
+    if c_options.outputtype == "json":
+        result = clusterer.output_json(result, c_options.topk)
+    else:
+        result = clusterer.output_csv(result, c_options.topk, c_options.separator)
 
     if c_options.outputformat == "text":
         if c_options.computeIdenticalClusters is True:

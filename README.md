@@ -10,6 +10,8 @@ Requirements:
 
 You can run the clustering using a One Step driver - runLSH.py or using 3 steps - tokenization, hashing and then clustering
 
+* Run `./make-spark.sh` every time to build the zip files required by spark every time you pull in new code
+
 Tokenization, LSH, Clustering using one step
 --------------------------------------------
 ```
@@ -23,7 +25,6 @@ To view all options, you can pass --help to the programs. Example:
 
 Example Invocation:
 ```
- zip -r lsh.zip tokenizer hasher clusterer
  cd <spark-folder>
 ./bin/spark-submit \
     --master local[*] \
@@ -40,8 +41,10 @@ Example Invocation:
     ~/github/dig-lsh-clustering/datasets/city_state_country_config.json \
     ~/github/dig-lsh-clustering/datasets/sample-ad-location/geonames-clusters
 ```
-The output is in text file format. If you wish to generate the output as
+* The output is in text file format. If you wish to generate the output as
 a text file, pass ```--outputformat sequence``` as a parameter
+* It by default returns the results as json lines. To return them as csv, pass ```--outputtype csv```
+* For each source, it return top 3 candidates (More if there is a tie on score). To increase the number of result candiates pass ```--topk 10```. Pass the value as -1 to return all results.
 
 To cluster a dataset (i.e. not against a base dataset, but to find clusters within itself),
 omit the --base parameter while clustering. Also the input can be a sequenceFile, and that can be specified
@@ -92,8 +95,6 @@ tokenizer.py [options] inputFile configFile outputDir
 
 Example Invocation:
 ```
-cd tokenizer
-zip -r tokenizer.zip RowTokenizer.py inputParser ngram
 cd <spark-folder>
 ./bin/spark-submit \
     --master local[*] \
@@ -139,8 +140,6 @@ hasher.py [options] inputDir outputDir
 
 Example Invocation:
 ```
-cd hasher
-zip -r hasher.zip lsh
 cd <spark-folder>
 ./bin/spark-submit \
     --master local[*] \
@@ -183,12 +182,17 @@ Example Invocation:
     ~/github/dig-lsh-clustering/datasets/sample-ad-location/geonames-clusters
 ```
 
+* The output is in text file format. If you wish to generate the output as
+a text file, pass ```--outputformat sequence``` as a parameter
+* It by default returns the results as json lines. To return them as csv, pass ```--outputtype csv```
+* For each source, it return top 3 candidates (More if there is a tie on score). To increase the number of result candiates pass ```--topk 10```. Pass the value as -1 to return all results.
+
 
 #Troubleshooting
 ----------------
 1. <b>Am getting "OutOfMemoryError".</b>
 
- Pass parameter --numPartitions and set a big value. example: --numPartitions 100000
+ Pass parameter --numPartitions and set a big value. example: --numPartitions 10000
  Also, try to increase the executor-memory and driver-memory for Spark.
 
  2. <b>How can I see all the options for a command.</b>
