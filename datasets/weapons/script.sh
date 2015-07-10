@@ -37,6 +37,14 @@ rm -rf /Volumes/dipsy/isi/lsh/weapons/tokens; ./bin/spark-submit \
 #     ~/github/dig-lsh-clustering/count_keys.py \
 #     /Volumes/dipsy/isi/lsh/weapons/tokens
 
+# ./bin/spark-submit \
+#     --master local[1] \
+#     --executor-memory=12g \
+#     --driver-memory=12g \
+#     ~/github/dig-lsh-clustering/sequenceToText.py \
+#     /Volumes/dipsy/isi/lsh/weapons/tokens \
+#     /Volumes/dipsy/isi/lsh/weapons/tokens-text
+
 #Hash the files
 rm -rf /Volumes/dipsy/isi/lsh/geonames/hashes; ./bin/spark-submit \
     --master local[*] \
