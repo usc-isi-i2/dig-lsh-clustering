@@ -1,12 +1,3 @@
-zip -r tokenizer.zip RowTokenizer.py inputParser ngram
-# /usr/lib/spark/bin/spark-submit \
-#     --master yarn-client \
-#     --py-files /home/ubuntu/dig-lsh-clustering/tokenizer/tokenizer.zip \
-#     /home/ubuntu/dig-lsh-clustering/tokenizer/tokenizer.py \
-#     hdfs://memex-nn1:8020/view/user/worker/lsh-clustering/geonames/us_populated_places.tsv  \
-#     hdfs://memex-nn1:8020/view/user/worker/lsh-clustering/geonames/geonames_config.json \
-#     hdfs://memex-nn1:8020/view/user/worker/lsh-clustering/geonames/tokens
-
 #Tokenize the files
 rm -rf /Volumes/dipsy/isi/lsh/geonames/tokens; ./bin/spark-submit \
     --master local[*] \
@@ -52,7 +43,7 @@ rm -rf /Volumes/dipsy/isi/lsh/geonames/hashes; ./bin/spark-submit \
     --driver-memory=12g \
     --py-files ~/github/dig-lsh-clustering/hasher/hasher.zip \
     ~/github/dig-lsh-clustering/hasher/hasher.py \
-    --saveMinhashes --numHashes 50 --numItemsInBand 10 \
+    --saveMinhashes --numHashes 50 --numItemsInBand 5 \
     /Volumes/dipsy/isi/lsh/geonames/tokens \
     /Volumes/dipsy/isi/lsh/geonames/hashes
 
@@ -62,17 +53,18 @@ rm -rf /Volumes/dipsy/isi/lsh/weapons/hashes; ./bin/spark-submit \
     --driver-memory=12g \
     --py-files ~/github/dig-lsh-clustering/hasher/hasher.zip \
     ~/github/dig-lsh-clustering/hasher/hasher.py \
-    --saveMinhashes --numHashes 50 --numItemsInBand 10 \
+    --saveMinhashes --numHashes 50 --numItemsInBand 5 \
     /Volumes/dipsy/isi/lsh/weapons/tokens \
     /Volumes/dipsy/isi/lsh/weapons/hashes
 
 #Do the clustering
-rm -rf /Volumes/dipsy/isi/lsh/weapons/clusters; ./bin/spark-submit \
+rm -rf /Volumes/dipsy/isi/lsh/weapons/clusters-3gm-50-5; ./bin/spark-submit \
      --master local[*] \
      --executor-memory=12g \
     --driver-memory=12g \
     ~/github/dig-lsh-clustering/clusterer/clusterer.py \
     --base /Volumes/dipsy/isi/lsh/geonames/hashes \
     --computeSimilarity \
+    --numPartitions 1000 \
     /Volumes/dipsy/isi/lsh/weapons/hashes \
-    /Volumes/dipsy/isi/lsh/weapons/clusters
+    /Volumes/dipsy/isi/lsh/weapons/clusters-3gm-50-5

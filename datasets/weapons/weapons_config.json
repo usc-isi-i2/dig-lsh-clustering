@@ -32,7 +32,7 @@
         "stop_default"
       ],
       "tokenizers": [
-        "character_n_5"
+        "character_n_3"
       ]
     }
   },
@@ -40,6 +40,14 @@
     "word_n_2": {
       "type": "word_ngram",
       "size": 2
+    },
+    "character_n_3": {
+      "type": "character_ngram",
+      "size": 3
+    },
+    "character_n_4": {
+      "type": "character_ngram",
+      "size": 4
     },
     "character_n_5": {
       "type": "character_ngram",

@@ -7,17 +7,15 @@ import hashlib
 from pyspark import StorageLevel
 
 class Clusterer:
-    def __init__(self, p_numPartitions, p_numHashes, p_numItemsInBand, p_computeSimilarity, p_threshold):
+    def __init__(self, p_numPartitions, p_computeSimilarity, p_threshold):
         self.numPartitions = p_numPartitions
-        self.numHashes = p_numHashes
-        self.numItemsInBand = p_numItemsInBand
         self.computeSimilarity = p_computeSimilarity
         self.threshold = p_threshold
 
     def compute_clusters_with_base(self, data, base):
         lsh_clusters = data.join(base, self.numPartitions)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_clusters_with_base(x[0],list(x[1])))
-        return self.__deduplicate_clusters(clusters_with_dups)
+        return clusters_with_dups.reduceByKey(lambda value1, value2: self.__remove_duplicates(value1, value2))
 
     def compute_clusters(self, data):
         lsh_clusters = data.groupByKey(self.numPartitions)
@@ -83,19 +81,18 @@ class Clusterer:
                 yield str(key) + separator + str(match)
 
 
-    def __deduplicate_clusters(self, clusters_with_dups):
-        clusters_no_dups = clusters_with_dups.reduceByKey(lambda value1, value2: self.__check_duplicate(value1, value2))
-        return clusters_no_dups.mapValues(lambda x: list(self.__compute_similarity(x)))
-
     def __output_clusters_with_base(self, lsh_key, cluster):
         #print "Output clusters for key:", lsh_key
         data = cluster[0]
         key = data[0]
         matches = cluster[1:]
         for match in matches:
-            arr_hashes = [data[1], match[1]]
-            match_with_data = [match[0], arr_hashes]
-            yield key, match_with_data
+            match_key = match[0]
+            if self.computeSimilarity is True:
+                score = self.__compute_list_similarity_score(data[1], match[1])
+                yield key, [(match_key, score)]
+            else:
+                yield key, [(match_key, 0)]
 
     def __output_cluster(self, lsh_key, cluster):
         if len(cluster) > 0 :
@@ -104,9 +101,11 @@ class Clusterer:
                 for match in cluster:
                     key2 = match[0]
                     if key1 < key2:
-                        arr_hashes = [data[1], match[1]]
-                        match_with_data = [match[0], arr_hashes]
-                        yield key1, match_with_data
+                        if self.computeSimilarity is True:
+                            score = self.__compute_list_similarity_score(data[1], match[1])
+                            yield key1, [(key2, score)]
+                        else:
+                            yield key1, [(key2, 0)]
 
     def __output_key_cluster_ids(self, lsh_key, cluster):
         if len(cluster) > 0 :
@@ -124,64 +123,36 @@ class Clusterer:
                 cluster_id = hashlib.sha1(",".join(hashes)).hexdigest()
                 yield lsh_key, (cluster_id, hashes)
 
-    def __compute_similarity(self, matches):
-        # print "Compite similarity:", matches
-
-        for i in self.custom_range(0, len(matches)-1, 2):
-            match = matches[i]
-            hashes = matches[i+1]
-            # print "Got match:", match
-            # print "Got hashes:", hashes
-
-            if self.computeSimilarity is True:
-                key_minhash = hashes[0]
-                match_hashes = hashes[1]
-                score = self.__compute_list_similarity_score(key_minhash, match_hashes)
-                if score > self.threshold:
-                    yield (match, score)
-            else:
-                yield match
-
     def __compute_list_similarity_score(self, list1, list2):
         similarity = float(len(set(list1) & set(list2)))/float(len(set(list1)))
         return similarity
 
-    def __remove_duplicates(self, list_data):
-        seen = list()
-        list_data = list_data[1:]
-        for x in list_data:
-            if x[0] in seen:
-                continue
-            else:
-                seen.append(x[0])
-                yield x
-
-    def custom_range(self, start, end, step):
-        while start <= end:
-            yield start
-            start += step
-
-    def __check_duplicate(self, value1, value2):
+    def __remove_duplicates(self, value1, value2):
         if value1 is None:
             return value2
         if value2 is None:
             return value1
 
         seen = list()
-        for i in self.custom_range(0, len(value1)-1, 2):
-            key = value1[i]
-            #print "Added to see:", i, ":", key
-            seen.append(key)
+        for i in range(0, len(value1)-1):
+            match = value1[i]
+            seen.append(match[0])
 
-
-        for i in self.custom_range(0, len(value2)-1, 2):
-            key = value2[i]
+        for i in range(0, len(value2)):
+            match = value2[i]
+            key = match[0]
             if key in seen:
+                idx = seen.index(key)
+
+                score = value1[idx][1]
+                this_score = match[1]
+
+                if this_score > score:
+                    value1[idx] = (key, this_score)
                 continue
             seen.append(key)
             #print "Added new:", key
-            value1.append(value2[i])
-            value1.append(value2[i+1])
+            value1.append(match)
 
         return value1
 
@@ -195,10 +166,7 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-r", "--separator", dest="separator", type="string",
                       help="field separator", default="\t")
-    parser.add_option("-n", "--numHashes", dest="numHashes", type="int",
-                      help="number of minhashes", default=100)
-    parser.add_option("-b", "--numItemsInBand", dest="numItemsInBand", type="int",
-                      help="number of items in each band", default=10)
+
     parser.add_option("-s", "--computeSimilarity", action="store_true",
                       dest="computeSimilarity", default=False, help="compute similarity")
     parser.add_option("-j", "--computeIdenticalClusters", action="store_true",
@@ -222,7 +190,7 @@ if __name__ == "__main__":
     outputFilename = args[1]
     print "Save to:", outputFilename
 
-    clusterer = Clusterer(c_options.numPartitions, c_options.numHashes, c_options.numItemsInBand,
+    clusterer = Clusterer(c_options.numPartitions,
                           c_options.computeSimilarity, c_options.threshold)
     rdd = sc.sequenceFile(inputFilename).mapValues(lambda x: json.loads(x))
     if len(c_options.base) > 0:
