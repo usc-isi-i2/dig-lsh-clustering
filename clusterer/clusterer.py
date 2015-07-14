@@ -37,12 +37,12 @@ class Clusterer:
             top_data = data
         return top_data.flatMap(lambda x: list(self.__generate_csv(x[0], x[1], separator)))
 
-    def output_json(self, data, top_k):
+    def output_json(self, data, top_k, candidates_name):
         if self.computeSimilarity is True and top_k != -1:
             top_data = data.mapValues(lambda x: self.__get_top_k(x, top_k))
         else:
             top_data = data
-        return top_data.map(lambda x: self.__generate_json(x[0], x[1]))
+        return top_data.map(lambda x: self.__generate_json(x[0], x[1], candidates_name))
 
     def __get_top_k(self, matches, top_k):
         sorted_matches = sorted(matches, key=lambda x: float(x[1]), reverse=True)
@@ -59,8 +59,8 @@ class Clusterer:
                 break
         return result
 
-    def __generate_json(self, key, matches):
-        json_obj = {"source": str(key), "candidates":[]}
+    def __generate_json(self, key, matches, candidates_name):
+        json_obj = {"uri": str(key), candidates_name:[]}
         for match in matches:
             # print "Match:", type(match), ", ", match
             candidate = {}
@@ -69,7 +69,7 @@ class Clusterer:
                 candidate["score"] = match[1]
             else:
                 candidate["uri"] = str(match)
-            json_obj["candidates"].append(candidate)
+            json_obj[candidates_name].append(candidate)
         return json_obj
 
 
@@ -134,13 +134,13 @@ class Clusterer:
             return value1
 
         seen = list()
-        for i in range(0, len(value1)-1):
+        for i in range(0, len(value1)):
             match = value1[i]
-            seen.append(match[0])
+            seen.append(str(match[0]))
 
         for i in range(0, len(value2)):
             match = value2[i]
-            key = match[0]
+            key = str(match[0])
             if key in seen:
                 idx = seen.index(key)
 
@@ -150,8 +150,8 @@ class Clusterer:
                 if this_score > score:
                     value1[idx] = (key, this_score)
                 continue
+            print "Added new:", key, "seen:", seen
             seen.append(key)
-            #print "Added new:", key
             value1.append(match)
 
         return value1
@@ -183,6 +183,8 @@ if __name__ == "__main__":
                       help="top n matches", default=3)
     parser.add_option("-x", "--numPartitions", dest="numPartitions", type="int",
                       help="number of partitions", default=10)
+    parser.add_option("-z", "--candidatesName", dest="candidates_name", type="string",
+                        help="name for json element for matching candidates", default="candidates")
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
 
@@ -203,7 +205,7 @@ if __name__ == "__main__":
             result = clusterer.compute_clusters(rdd)
 
     if c_options.outputtype == "json":
-        result = clusterer.output_json(result, c_options.topk)
+        result = clusterer.output_json(result, c_options.topk, c_options.candidates_name)
     else:
         result = clusterer.output_csv(result, c_options.topk, c_options.separator)
 

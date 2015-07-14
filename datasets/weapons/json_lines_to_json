@@ -1,0 +1,17 @@
+append_to_json_from_file() {
+  local filename=$1
+  local curr_json=${2:-[]}
+  local -a pending_items=( )
+  local max_batch_size=50 # tune for your platform and maximum argument lengths
+  while IFS= read -r; do
+    pending_items+=( "$REPLY" )
+    if (( ${#pending_items[@]} > max_batch_size )); then
+      curr_json=$(json_append "$curr_json" "${pending_items[@]}")
+      pending_items=( )
+    fi
+  done <"$filename"
+  if (( ${#pending_items[@]} )); then
+    curr_json=$(json_append "$curr_json" "${pending_items[@]}")
+  fi
+  printf '%s\n' "$curr_json"
+}

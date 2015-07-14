@@ -44,6 +44,8 @@ if __name__ == "__main__":
                       help="output type: csv/json", default="json")
     parser.add_option("-k", "--topk", dest="topk", type="int",
                       help="top n matches", default=3)
+    parser.add_option("-z", "--candidatesName", dest="candidates_name", type="string",
+                        help="name for json element for matching candidates", default="candidates")
 
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     hasher = Hasher(c_options.numHashes, c_options.numItemsInBand, c_options.computeSimilarity)
     input_lsh_rdd = hasher.compute_hashes(rdd)
 
-    clusterer = Clusterer(c_options.numPartitions, c_options.numHashes, c_options.numItemsInBand,
+    clusterer = Clusterer(c_options.numPartitions,
                           c_options.computeSimilarity, c_options.threshold)
 
     if len(c_options.base) > 0:
@@ -82,7 +84,7 @@ if __name__ == "__main__":
             result = clusterer.compute_clusters(input_lsh_rdd)
 
     if c_options.outputtype == "json":
-        result = clusterer.output_json(result, c_options.topk)
+        result = clusterer.output_json(result, c_options.topk, c_options.candidates_name)
     else:
         result = clusterer.output_csv(result, c_options.topk, c_options.separator)
 
