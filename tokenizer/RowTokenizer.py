@@ -23,6 +23,9 @@ class RowTokenizer:
         dict_prefix = dict()
         dict_blank_fields = dict()
 
+        #print "GOt row:", row
+        final_row = list()
+
         for index, field_value in enumerate(row):
             dict_blank_fields[index] = False
             dict_prefix[index] = ""
@@ -38,10 +41,13 @@ class RowTokenizer:
                     dict_prefix[index] = field_config["prefix"]
                 if "allow_blank" in field_config:
                     dict_blank_fields[index] = field_config["allow_blank"]
+                final_row.append(field_value)
             else:
+                final_row.append('')
                 analyzer = self.config["defaultConfig"]["analyzer"]
             dict_analyzer[index] = analyzer
 
+        row = final_row
         #print "Tokenize row:", row
         multi_lines = self.__get_cross_product(dict_blank_fields, row)
         for line in multi_lines:
