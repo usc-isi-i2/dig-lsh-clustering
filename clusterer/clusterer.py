@@ -150,7 +150,7 @@ class Clusterer:
                 if this_score > score:
                     value1[idx] = (key, this_score)
                 continue
-            print "Added new:", key, "seen:", seen
+            #print "Added new:", key, "seen:", seen
             seen.append(key)
             value1.append(match)
 
