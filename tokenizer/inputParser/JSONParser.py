@@ -11,18 +11,27 @@ class JSONParser:
                 self.column_paths.insert(int(index), config["fieldConfig"][index]["path"])
 
     def parse(self, x):
+        return self.parse_with_paths(x, "uri", self.column_paths)
+
+    def parse_with_key(self, x, key_name):
+        return self.parse_values_with_paths(x, key_name, self.column_paths)
+
+    def parse_with_paths(self, x, key_name, paths):
         json_data = json.loads(x)
-        value = self.__extract_columns(json_data)
-        key = x["uri"]
-        return (key, value)
+        value = self.__extract_columns(json_data, paths)
+        key = x[key_name]
+        return key, value
 
     def parse_values(self, x):
-        json_data = json.loads(x)
-        return self.__extract_columns(json_data)
+        return self.parse_values_with_paths(x, self.column_paths)
 
-    def __extract_columns(self, row):
+    def parse_values_with_paths(self, x, paths):
+        json_data = json.loads(x)
+        return self.__extract_columns(json_data, paths)
+
+    def __extract_columns(self, row, paths):
         result = []
-        for path in self.column_paths:
+        for path in paths:
             #print "Extract path:", self.column_paths
             path_elems = path.split(".")
             start = row

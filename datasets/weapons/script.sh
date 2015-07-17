@@ -20,13 +20,13 @@ rm -rf /Volumes/dipsy/isi/lsh/weapons/tokens; ./bin/spark-submit \
     ~/github/dig-lsh-clustering/datasets/weapons/config_city_state.json \
     /Volumes/dipsy/isi/lsh/weapons/tokens
 
-rm -rf /Volumes/dipsy/isi/lsh/weapons/tokens-text; ./bin/spark-submit \
-    --master local[1] \
-    --executor-memory=12g \
-    --driver-memory=12g \
-    ~/github/dig-lsh-clustering/sequenceToText.py \
-    /Volumes/dipsy/isi/lsh/weapons/tokens \
-    /Volumes/dipsy/isi/lsh/weapons/tokens-text
+# rm -rf /Volumes/dipsy/isi/lsh/weapons/tokens-text; ./bin/spark-submit \
+#     --master local[1] \
+#     --executor-memory=12g \
+#     --driver-memory=12g \
+#     ~/github/dig-lsh-clustering/sequenceToText.py \
+#     /Volumes/dipsy/isi/lsh/weapons/tokens \
+#     /Volumes/dipsy/isi/lsh/weapons/tokens-text
 
 rm -rf /Volumes/dipsy/isi/lsh/weapons/hashes; ./bin/spark-submit \
     --master local[*] \
@@ -37,6 +37,14 @@ rm -rf /Volumes/dipsy/isi/lsh/weapons/hashes; ./bin/spark-submit \
     --saveMinhashes --numHashes 50 --numItemsInBand 5 \
     /Volumes/dipsy/isi/lsh/weapons/tokens \
     /Volumes/dipsy/isi/lsh/weapons/hashes
+
+# rm -rf /Volumes/dipsy/isi/lsh/weapons/hashes-text; ./bin/spark-submit \
+#     --master local[1] \
+#     --executor-memory=12g \
+#     --driver-memory=12g \
+#     ~/github/dig-lsh-clustering/sequenceToText.py \
+#     /Volumes/dipsy/isi/lsh/weapons/hashes \
+#     /Volumes/dipsy/isi/lsh/weapons/hashes-text
 
 #Prepare the geonames dataset
 rm -rf /Volumes/dipsy/isi/lsh/geonames/tokens; ./bin/spark-submit \
@@ -49,20 +57,13 @@ rm -rf /Volumes/dipsy/isi/lsh/geonames/tokens; ./bin/spark-submit \
     ~/github/dig-lsh-clustering/datasets/weapons/config_city_state.json \
     /Volumes/dipsy/isi/lsh/geonames/tokens
 
-rm -rf /Volumes/dipsy/isi/lsh/geonames/tokens-text; ./bin/spark-submit \
-    --master local[1] \
-    --executor-memory=12g \
-    --driver-memory=12g \
-    ~/github/dig-lsh-clustering/sequenceToText.py \
-    /Volumes/dipsy/isi/lsh/geonames/tokens \
-    /Volumes/dipsy/isi/lsh/geonames/tokens-text
-
-# ./bin/spark-submit \
+# rm -rf /Volumes/dipsy/isi/lsh/geonames/tokens-text; ./bin/spark-submit \
 #     --master local[1] \
 #     --executor-memory=12g \
 #     --driver-memory=12g \
-#     ~/github/dig-lsh-clustering/count_keys.py \
-#     /Volumes/dipsy/isi/lsh/weapons/tokens
+#     ~/github/dig-lsh-clustering/sequenceToText.py \
+#     /Volumes/dipsy/isi/lsh/geonames/tokens \
+#     /Volumes/dipsy/isi/lsh/geonames/tokens-text
 
 rm -rf /Volumes/dipsy/isi/lsh/geonames/hashes; ./bin/spark-submit \
     --master local[*] \
@@ -74,7 +75,13 @@ rm -rf /Volumes/dipsy/isi/lsh/geonames/hashes; ./bin/spark-submit \
     /Volumes/dipsy/isi/lsh/geonames/tokens \
     /Volumes/dipsy/isi/lsh/geonames/hashes
 
-
+# rm -rf /Volumes/dipsy/isi/lsh/geonames/hashes-text; ./bin/spark-submit \
+#     --master local[1] \
+#     --executor-memory=12g \
+#     --driver-memory=12g \
+#     ~/github/dig-lsh-clustering/sequenceToText.py \
+#     /Volumes/dipsy/isi/lsh/geonames/hashes \
+#     /Volumes/dipsy/isi/lsh/geonames/hashes-text
 
 #Do the clustering
 rm -rf /Volumes/dipsy/isi/lsh/weapons/clusters-3gm-50-5; ./bin/spark-submit \
@@ -101,6 +108,7 @@ export HIVE_OPTS='--hiveconf mapred.job.tracker=local --hiveconf fs.default.name
     --hiveconf hive.metastore.warehouse.dir=file:///tmp/warehouse \
     --hiveconf javax.jdo.option.ConnectionURL=jdbc:derby:;databaseName=/tmp/metastore_db;create=true'
 
+rm -rf /Volumes/dipsy/isi/lsh/weapons/clusters-3gm-50-5-merged 
 ~/hive-join/apache-hive-1.1.0-bin/bin/hive -f ~/hive-join/scripts/all_in_one_join.hql  \
     -d TABLE_NAME=merged  \
     -d TABLE_DIRECTORY=/Volumes/dipsy/isi/lsh/weapons/clusters-3gm-50-5-merged \
@@ -114,17 +122,18 @@ export HIVE_OPTS='--hiveconf mapred.job.tracker=local --hiveconf fs.default.name
     -d ATID=uri \
     -v
 
-#Convert /Volumes/dipsy/isi/lsh/weapons/clusters-3gm-50-5-merged to Sequence file using CreateSequenceFile in Karma
+#Convert the output from above from json-lines to json
+sed 's/\/processed\"}/\/processed\"},/g' < 000001_0 > file1.json
+#Add [ and ] to the file1.json
+
+#Convert the generated json files to Sequence file using CreateSequenceFile in Karma
+
 #Upload to Hue: /user/worker/lsh-clustering/weapons/clusters-3gm-50-5-merge-side1
-#Rune coordinate-2-dirs workflow with DATASET1: /user/worker/process/atf/weapons/trial03/ and DATASET2: /user/worker/lsh-clustering/weapons/clusters-3gm-50-5-merge-side1
+#Run coordinate-2-dirs workflow with DATASET1: /user/worker/process/atf/weapons/trial03/ and DATASET2: /user/worker/lsh-clustering/weapons/clusters-3gm-50-5-merge-side1
 #and OUTPUT_DIR as /user/worker/lsh-clustering/weapons/clusters-3gm-50-5
 
-./bin/spark-submit \
-    --master local[1] \
-    --executor-memory=12g \
-    --driver-memory=12g \
-    ~/github/dig-lsh-clustering/sequenceToText.py \
-    hdfs://memex-nn1:8020/user/worker/lsh-clustering/weapons/clusters-4gm-50-5-FINAL \
-    /Volumes/dipsy/isi/lsh/weapons/clusters-4gm-50-5-FINAL \
-    --values
+python    ~/github/dig-lsh-clustering/datasets/weapons/run_evaluation.py \
+    /Volumes/dipsy/isi/lsh/weapons/ground_truth_weapons_199.tsv \
+    /Volumes/dipsy/isi/lsh/weapons/evaluation-lsh-results.json
+    
 

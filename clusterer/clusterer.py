@@ -31,21 +31,25 @@ class Clusterer:
         return key_clusters, self.__deduplicate_clusters(clusters_with_dups)
 
     def output_csv(self, data, top_k, separator):
+        sorted_data = data.mapValues(lambda x: self.__sort_by_score(x))
         if self.computeSimilarity is True and top_k != -1:
-            top_data = data.mapValues(lambda x: self.__get_top_k(x, top_k))
+            top_data = sorted_data.mapValues(lambda x: self.__get_top_k(x, top_k))
         else:
-            top_data = data
+            top_data = sorted_data
         return top_data.flatMap(lambda x: list(self.__generate_csv(x[0], x[1], separator)))
 
     def output_json(self, data, top_k, candidates_name):
+        sorted_data = data.mapValues(lambda x: self.__sort_by_score(x))
         if self.computeSimilarity is True and top_k != -1:
-            top_data = data.mapValues(lambda x: self.__get_top_k(x, top_k))
+            top_data = sorted_data.mapValues(lambda x: self.__get_top_k(x, top_k))
         else:
-            top_data = data
+            top_data = sorted_data
         return top_data.map(lambda x: self.__generate_json(x[0], x[1], candidates_name))
 
-    def __get_top_k(self, matches, top_k):
-        sorted_matches = sorted(matches, key=lambda x: float(x[1]), reverse=True)
+    def __sort_by_score(self, matches):
+        return sorted(matches, key=lambda x: float(x[1]), reverse=True)
+
+    def __get_top_k(self, sorted_matches, top_k):
         result = []
         current_score = 0
         for match in sorted_matches:
