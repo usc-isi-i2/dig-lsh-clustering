@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 
 import sys
-from pyspark import SparkContext
-import json
-from tokenizer.inputParser.JSONParser import JSONParser
 import re
 from utils.address import standardize_state_name
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def clean_data(x_list):
     #print "clean:", x_list
 
     for x in x_list:
         x = remove_country(x)
-        fields = re.split(r"[,/]+", x)
+        fields = re.split(r"[,/-]+", x)
         state = fields[len(fields)-1].strip()
         state = standardize_state_name(state)
         cities = fields[0:len(fields)-1]
@@ -36,20 +35,47 @@ def generate_csv(key, values):
     final = ""
     sep = ""
     for value in values:
-        final = final + sep + str(value)
+        final = final + sep + str(value.encode('utf-8'))
         sep = "\t"
-    return str(key) + "\t" + final
+    if len(final) > 0:
+        return str(key) + "\t" + final
+
+def parse(parser, x):
+    return parser.parse_values(x)
 
 if __name__ == "__main__":
+    from pyspark import SparkContext
+    from tokenizer.inputParser.JSONParser import JSONParser
+    import json
+
     sc = SparkContext(appName="LSH")
     inputFilename = sys.argv[1]
     config_file = open(sys.argv[2])
     config = json.load(config_file)
+    # config = { "fieldConfig": { "0": { "path": "availableAtOrFrom.address.name" } } }
     outputFilename = sys.argv[3]
 
     rdd = sc.sequenceFile(inputFilename)
     parser = JSONParser(config, None)
-    json_rdd = rdd.mapValues(lambda x: parser.parse_values(x))
+    json_rdd = rdd.mapValues(lambda x: parse(parser, x))
+
     cleaned = json_rdd.flatMapValues(lambda x: list(clean_data(x)))
     result = cleaned.map(lambda (x, y) : generate_csv(x, y))
-    result.saveAsTextFile(outputFilename)
+    result.filter(lambda line: line is not None).saveAsTextFile(outputFilename)
+
+# if __name__ == "__main__":
+#     inputFilename = sys.argv[1]
+#     outputFilename = sys.argv[2]
+#
+#     in_file = open(inputFilename)
+#     out_file = open(outputFilename, 'w')
+#
+#     for line in in_file:
+#         line_parts = line.split("\t")
+#         uri = line_parts[0]
+#         value = line_parts[1]
+#         clean_values = list(clean_data([value]))
+#         for clean in clean_values:
+#             out_file.write(generate_csv(uri, clean) + "\n")
+#
+#     out_file.close()

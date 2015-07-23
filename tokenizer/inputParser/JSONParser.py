@@ -39,13 +39,13 @@ class JSONParser:
             for path_elem in path_elems:
                 if path_elem in start:
                     start = start[path_elem]
-                    if type(start) == list:
-                        start =  ", ".join(start)
                 else:
                     found = False
                     break
 
             if found:
+                if type(start) == list:
+                    start =  ", ".join(start)
                 result.append(start)
             else:
                 result.append("")
