@@ -19,7 +19,7 @@ class JSONParser:
     def parse_with_paths(self, x, key_name, paths):
         json_data = json.loads(x)
         value = self.__extract_columns(json_data, paths)
-        key = x[key_name]
+        key = json_data[key_name]
         return key, value
 
     def parse_values(self, x):
