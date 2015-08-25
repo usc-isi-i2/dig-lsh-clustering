@@ -24,3 +24,6 @@ datasets/geonames/clusters/*
 *.zip
 
 gen_clusters/body_text/istr-100k.zip
+_SUCCESS
+part-00*
+*.seq

@@ -20,7 +20,7 @@ class Clusterer:
     def compute_clusters(self, data):
         lsh_clusters = data.groupByKey(self.numPartitions)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
-        return self.__deduplicate_clusters(clusters_with_dups)
+        return clusters_with_dups.reduceByKey(lambda value1, value2: self.__remove_duplicates(value1, value2))
 
     def compute_identical_clusters(self, data):
         lsh_clusters = data.groupByKey(self.numPartitions)
