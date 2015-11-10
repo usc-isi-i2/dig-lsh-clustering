@@ -64,25 +64,50 @@ class Clusterer:
         return result
 
     def __generate_json(self, key, matches, candidates_name):
-        json_obj = {"uri": str(key), candidates_name:[]}
-        for match in matches:
-            # print "Match:", type(match), ", ", match
-            candidate = {}
-            if type(match) is list or type(match) is dict or type(match) is tuple:
-                candidate["uri"] = str(match[0])
-                candidate["score"] = match[1]
-            else:
-                candidate["uri"] = str(match)
-            json_obj[candidates_name].append(candidate)
+        if len(c_options.base) > 0:
+            json_obj = {"uri": str(key), candidates_name:[]}
+            for match in matches:
+                # print "Match:", type(match), ", ", match
+                candidate = {}
+                if type(match) is list or type(match) is dict or type(match) is tuple:
+                    candidate["uri"] = str(match[0])
+                    candidate["score"] = match[1]
+                else:
+                    candidate["uri"] = str(match)
+                json_obj[candidates_name].append(candidate)
+        else:
+            json_obj = {"cluster":[]}
+            json_obj["cluster"].append({"uri":key})
+            for match in matches:
+                # print "Match:", type(match), ", ", match
+                candidate = {}
+                if type(match) is list or type(match) is dict or type(match) is tuple:
+                    candidate["uri"] = str(match[0])
+                    if self.computeSimilarity is True:
+                        candidate["score"] = match[1]
+                else:
+                    candidate["uri"] = str(match)
+                json_obj["cluster"].append(candidate)
+
+
         return json_obj
 
 
     def __generate_csv(self, key, matches, separator):
-        for match in matches:
-            if type(match) is list or type(match) is dict or type(match) is tuple:
-                yield str(key) + separator + str(match[0]) + separator + str(match[1])
-            else:
-                yield str(key) + separator + str(match)
+        if self.computeSimilarity:
+            for match in matches:
+                if type(match) is list or type(match) is dict or type(match) is tuple:
+                    yield str(key) + separator + str(match[0]) + separator + str(match[1])
+                else:
+                    yield str(key) + separator + str(match)
+        else:
+            line = str(key)
+            for match in matches:
+                if type(match) is list or type(match) is dict or type(match) is tuple:
+                    line = line + separator + str(match[0])
+                else:
+                    line = line + separator + str(match)
+            yield line
 
 
     def __output_clusters_with_base(self, lsh_key, cluster):
