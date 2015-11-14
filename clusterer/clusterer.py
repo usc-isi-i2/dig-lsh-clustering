@@ -90,7 +90,7 @@ class Clusterer:
                 json_obj["cluster"].append(candidate)
 
 
-        return json_obj
+        return key + "/cluster", json_obj
 
 
     def __generate_csv(self, key, matches, separator):
@@ -243,7 +243,7 @@ if __name__ == "__main__":
         if c_options.computeIdenticalClusters is True:
             key_clusterids.saveAsTextFile(outputFilename + "-key-clusterids")
     else:
-        result.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename)
+        result.mapValues(lambda x: json.dumps(x)).saveAsSequenceFile(outputFilename)
         if c_options.computeIdenticalClusters is True:
             key_clusterids.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename + "-key-clusterids")
 
