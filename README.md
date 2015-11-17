@@ -12,125 +12,13 @@ You can run the clustering using a One Step driver - runLSH.py or using 3 steps 
 
 * Run `./make-spark.sh` every time to build the zip files required by spark every time you pull in new code
 
-Tokenization, LSH, Clustering using one step
---------------------------------------------
-```
-runLSH.py [options] inputFile configFile outputDir
-```
-
-To view all options, you can pass --help to the programs. Example:
-```
-./bin/spark-submit  ~/github/dig-lsh-clustering/runLSH.py --help
-```
-
-Example Invocation:
-```
- cd <spark-folder>
-./bin/spark-submit \
-    --master local[*] \
-    --executor-memory=4g \
-    --driver-memory=4g \
-    --py-files ~/github/dig-lsh-clustering/lsh.zip \
-    ~/github/dig-lsh-clustering/runLSH.py \
-    --numPartitions 100 \
-    --base ~/github/dig-lsh-clustering/datasets/geonames/sample.tsv \
-    --baseConfig ~/github/dig-lsh-clustering/datasets/city_state_country_config.json \
-    --numHashes 50 --numItemsInBand 5 \
-    --computeSimilarity \
-    ~/github/dig-lsh-clustering/datasets/sample-ad-location/sample.tsv \
-    ~/github/dig-lsh-clustering/datasets/city_state_country_config.json \
-    ~/github/dig-lsh-clustering/datasets/sample-ad-location/geonames-clusters
-```
-* The output is in text file format. If you wish to generate the output as
-a text file, pass ```--outputformat sequence``` as a parameter
-* It by default returns the results as json lines. To return them as csv, pass ```--outputtype csv```
-* For each source, it return top 3 candidates (More if there is a tie on score). To increase the number of result candiates pass ```--topk 10```. Pass the value as -1 to return all results.
-
-To cluster a dataset (i.e. not against a base dataset, but to find clusters within itself),
-omit the --base parameter while clustering. Also the input can be a sequenceFile, and that can be specified
-by --inputformat sequence. The data type can be json (the config file must contain "path" to each field that should be
-extracted) that is specified by --type json
-
-Example Invocation:
-```
-./bin/spark-submit \
-    --master local[*] \
-    --executor-memory=4g \
-    --driver-memory=4g \
-    --py-files ~/github/dig-lsh-clustering/lsh.zip \
-    ~/github/dig-lsh-clustering/runLSH.py \
-    --numHashes 50 --numItemsInBand 5 \
-    --computeSimilarity \
-    --type json --inputformat sequence \
-    ~/github/dig-lsh-clustering/datasets/body_text/sample-ad.seq \
-    ~/github/dig-lsh-clustering/tokenizer/sample_json_config.json \
-    ~/github/dig-lsh-clustering/datasets/body_text/seq_clusters
-```
-
-Sometime there are a lot of duplicates in the dataset, and computing similarities can prove to be very expensive.
-In this case, we can create 2 datasets - one defining identical clusters, and the second defining similarities
-between these identical clusters. To do so, pass --computeIdenticalClusters to the clusterer
-Example Invocation:
-```
-./bin/spark-submit \
-    --master local[*] \
-    --executor-memory=4g \
-    --driver-memory=4g \
-    --py-files ~/github/dig-lsh-clustering/lsh.zip \
-    ~/github/dig-lsh-clustering/runLSH.py \
-    --numHashes 50 --numItemsInBand 5 \
-    --computeSimilarity --computeIdenticalClusters \
-    ~/github/dig-lsh-clustering/datasets/body_text/istr-100k/body.tsv \
-    ~/github/dig-lsh-clustering/datasets/body_text/config.json \
-    ~/github/dig-lsh-clustering/datasets/body_text/istr-100k/clusters
-```
 
 Running tokenization, LSH, clustering Step-by-Step
 --------------------------------------------------
 Step 1: Tokenization
 ---------------------
-```
-tokenizer.py [options] inputFile configFile outputDir
-```
-
-Example Invocation:
-```
-cd <spark-folder>
-./bin/spark-submit \
-    --master local[*] \
-    --executor-memory=4g \
-    --driver-memory=4g \
-    --py-files ~/github/dig-lsh-clustering/tokenizer/tokenizer.zip \
-    ~/github/dig-lsh-clustering/tokenizer/tokenizer.py \
-    ~/github/dig-lsh-clustering/datasets/sample-ad-location/sample.tsv \
-    ~/github/dig-lsh-clustering/datasets/city_state_country_config.json \
-    ~/github/dig-lsh-clustering/datasets/sample-ad-location/tokens
-
-./bin/spark-submit \
-    --master local[*] \
-    --executor-memory=4g \
-    --driver-memory=4g \
-    --py-files ~/github/dig-lsh-clustering/tokenizer/tokenizer.zip \
-    ~/github/dig-lsh-clustering/tokenizer/tokenizer.py \
-    ~/github/dig-lsh-clustering/datasets/geonames/sample.tsv \
-    ~/github/dig-lsh-clustering/datasets/city_state_country_config.json \
-    ~/github/dig-lsh-clustering/datasets/geonames/tokens
-```
-
-To tokenize a sequence file containing json data, the config file must contain "path" to each field that should be
-extracted.
-```
-./bin/spark-submit \
-    --master local[*] \
-    --executor-memory=4g \
-    --driver-memory=4g \
-    --py-files ~/github/dig-lsh-clustering/tokenizer/tokenizer.zip \
-    ~/github/dig-lsh-clustering/tokenizer/tokenizer.py \
-    --type json --inputformat sequence \
-    ~/github/dig-lsh-clustering/datasets/body_text/sample-ad.seq \
-    ~/github/dig-lsh-clustering/tokenizer/sample_json_config.json \
-    ~/github/dig-lsh-clustering/datasets/body_text/seq_tokens
-```
+See: https://github.com/usc-isi-i2/dig-tokenizer
+Generate the tokens with `--outputformat sequence` to generate the tokens as a sequence file that the LSH hasher can use
 
 Step 2: Compute LSH
 ---------------------
@@ -187,6 +75,26 @@ a text file, pass ```--outputformat sequence``` as a parameter
 * It by default returns the results as json lines. To return them as csv, pass ```--outputtype csv```
 * For each source, it return top 3 candidates (More if there is a tie on score). To increase the number of result candiates pass ```--topk 10```. Pass the value as -1 to return all results.
 
+Step 4: Union the clusters
+---------------------------
+This is an optional step to compute union of 2 clusters. This is used  only if clusters are generated <b>without</b> a base.
+If there is are clusters: [{A, B, C}, {B, D}], then this will union them and produce a single cluster [{A, B, C, D}]
+
+```
+unionFind.py [options] inputDir outputDir
+```
+
+Example Invocation:
+```
+./bin/spark-submit \
+     --master local[*] \
+     --executor-memory=4g \
+    --driver-memory=4g \
+    ~/github/dig-lsh-clustering/clusterer/unionFind.py \
+    --inputtype json --inputformat sequence --outputtype json --outputformat sequence \
+    ~/github/dig-lsh-clustering/datasets/ad-tiles/clusters \
+    ~/github/dig-lsh-clustering/datasets/ad-tiles/clusters-union
+```
 
 #Troubleshooting
 ----------------
