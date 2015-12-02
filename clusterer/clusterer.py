@@ -119,7 +119,8 @@ class Clusterer:
             match_key = match[0]
             if self.computeSimilarity is True:
                 score = self.__compute_list_similarity_score(data[1], match[1])
-                yield key, [(match_key, score)]
+                if self.threshold <= 0 or score >= self.threshold:
+                    yield key, [(match_key, score)]
             else:
                 yield key, [(match_key, 0)]
 
@@ -132,7 +133,8 @@ class Clusterer:
                     if key1 < key2:
                         if self.computeSimilarity is True:
                             score = self.__compute_list_similarity_score(data[1], match[1])
-                            yield key1, [(key2, score)]
+                            if self.threshold <= 0 or score >= self.threshold:
+                                yield key1, [(key2, score)]
                         else:
                             yield key1, [(key2, 0)]
 
