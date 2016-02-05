@@ -1,0 +1,51 @@
+
+---------------------------------------------------------------------
+Step 1 : Convert str tokens to int
+---------------------------------------------------------------------
+time python gen_int_input/str_to_int_tokens.py --input gen_clusters/cities/saam_cities.csv --output gen_clusters/cities/saam_cities-int.csv --outputTokensFile gen_clusters/cities/cities-tokens-map.dct
+real	0m0.366s
+user	0m0.278s
+sys	0m0.075s
+
+time python gen_int_input/str_to_int_tokens.py --input gen_clusters/cities/geonames_cities.csv --output gen_clusters/cities/geonames_cities-int.csv --inputTokensFile gen_clusters/cities/cities-tokens-map.dct --outputTokensFile gen_clusters/cities/cities-tokens-map.dct
+real	0m8.316s
+user	0m8.142s
+sys	0m0.130s
+
+---------------------------------------------------------------------
+Step 2 : Compute LSH tables
+---------------------------------------------------------------------
+time python genLSH.py --input gen_clusters/cities/saam_cities-int.csv --inputType tokens --output gen_clusters/cities/saam_cities-int-lsh.csv --dataType integer --numHashes 50 --numItemsInBand 10 --keyPrefix saam: --sortOutput False
+real	0m0.355s
+user	0m0.338s
+sys	0m0.016s
+
+time python genLSH.py --input gen_clusters/cities/geonames_cities-int.csv --inputType tokens --output gen_clusters/cities/geonames_cities-int-lsh.csv --dataType integer --numHashes 50 --numItemsInBand 10 --keyPrefix geoname: --sortOutput False
+real	0m27.079s
+user	0m26.575s
+sys	0m0.382s
+
+---------------------------------------------------------------------
+Now compute the clusters for saam with geoname as base
+---------------------------------------------------------------------
+time python genClustersWithBase.py --input gen_clusters/cities/saam_cities-int-lsh.csv --inputPrefix saam: --base gen_clusters/cities/geonames_cities-int-lsh.csv --basePrefix geoname: --output gen_clusters/cities/saam-matched-to-geonames-50-10.csv --dataType integer --numHashes 50 --numItemsInBand 10
+real	0m35.703s
+user	0m33.200s
+sys	0m2.085s
+
+-------------------------------------------------------
+Covert output to json
+Input is in format line this:
+ad:AbileneTexasUnitedStates	geoname:AbileneTexasUnitedStates	1.0
+ad:AbileneTexasUnitedStates	geoname:AbileneKansasUnitedStates	0.86
+.....
+This converts it to:
+[
+{"ad:AbileneTexasUnitedStates": [{"score": "1.0", "uri": "geoname:AbileneTexasUnitedStates"}, {"score": "0.86", "uri": "geoname:AbileneKansasUnitedStates"}]},
+...
+-------------------------------------------------------
+1. The CSV file, Sort by first column, followed by desc score
+sort -k 1,1 -k 3n,3nr similarity-6grams-sorted.csv > similarity-6grams-sorted-by-ad.csv
+
+2. Convert CSV to JSON, grouping them by the first column
+python csvtojson.py --input similarity-6grams-sorted-by-ad.csv --output similarity-ads.json --headerStartIndex 0 --dataStartIndex 1 --groupByColumn 1 --header ad,uri,score --prettyPrint True

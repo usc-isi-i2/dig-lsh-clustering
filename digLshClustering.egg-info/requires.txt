@@ -1,0 +1,4 @@
+nose2
+digSparkUtil
+jq
+digTokenizer

@@ -1,0 +1,11 @@
+Metadata-Version: 1.1
+Name: digLshClustering
+Version: 0.1.7
+Summary: code to cluster based on lsh algorithm
+Home-page: https://github.com/usc-isi-i2/dig-lsh-clustering.git
+Author: Dipsy Kapoor
+Author-email: dipsykapoor@gmail.com
+License: UNKNOWN
+Download-URL: https://github.com/usc-isi-i2/dig-lsh-clustering.git
+Description: UNKNOWN
+Platform: UNKNOWN

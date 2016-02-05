@@ -1,0 +1,64 @@
+(u'http://dig.isi.edu/weapons/data/page/9F071602A9CB131A8FEE9361C537AA54254BF26B/1433969556000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5718600', 0.64))
+	Central point, Medford, Oregon
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5718600	Central Point	Oregon	United States
+
+(u'http://dig.isi.edu/weapons/data/page/9F071602A9CB131A8FEE9361C537AA54254BF26B/1433969556000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5718601', 0.64))
+	Central point, Medford, Oregon
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5718601	Central Point	Oregon	United States
+
+(u'http://dig.isi.edu/weapons/data/page/32DC62F19FA44F2F2AD042897B7BD09F8184C408/1434182292000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5743427', 0.46))
+	north, Medford, Oregon
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5743427	North Powder	Oregon	United States
+
+(u'http://dig.isi.edu/weapons/data/page/E041AFEE0948A737D73FAD21AEC51910D74960B4/1433379685000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/4835797', 0.64))
+	hartford, Hartford, Connecticut
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/4835797	Hartford	Connecticut	United States
+
+(u'http://dig.isi.edu/weapons/data/page/99360C212258CD622C5A38029CA15A98E43B0655/1432328476000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5417598', 0.7))
+	COLORADO SPRINGS, Colorado Springs, Colorado
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5417598	Colorado Springs	Colorado	United States
+
+(u'http://dig.isi.edu/weapons/data/page/8406091AA0DD0310AD9B6E679DF24BC54479E108/1432020269000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5718600', 0.64))
+	Central Point, Medford, Oregon
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5718600	Central Point	Oregon	United States
+
+(u'http://dig.isi.edu/weapons/data/page/8406091AA0DD0310AD9B6E679DF24BC54479E108/1432020269000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5718601', 0.64))
+	Central Point, Medford, Oregon
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5718601	Central Point	Oregon	United States
+
+(u'http://dig.isi.edu/weapons/data/page/B2328651A27BB9269633AF210C00323AC09F1429/1433613767000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/4047584', 0.56))
+	Little Rock.., Little Rock, Arkansas
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/4047584	Little Red	Arkansas	United States
+
+(u'http://dig.isi.edu/weapons/data/page/164F0C8A642BDBF60004907CE1543ABE545C6B1E/1435614308000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/4047584', 0.56))
+	Little Rock, Little Rock, Arkansas
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/4047584	Little Red	Arkansas	United States
+
+(u'http://dig.isi.edu/weapons/data/page/008916A51D5BD30029C906A707C9119F8CD67629/1432756613000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5417598', 0.7))
+	colorado springs, Colorado Springs, Colorado
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5417598	Colorado Springs	Colorado	United States
+
+(u'http://dig.isi.edu/weapons/data/page/C44A2B1773BAE244F967FAB795DB3EBCA7CEB56F/1434867418000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5417598', 0.7))
+	Colorado Springs, Colorado Springs, Colorado
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5417598	Colorado Springs	Colorado	United States
+
+(u'http://dig.isi.edu/weapons/data/page/01EAAE974F6F1B5D2F27D0628CCA77DC5772C0D1/1434005002000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5718600', 0.64))
+	Central Point, Medford, Oregon
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5718600	Central Point	Oregon	United States
+
+(u'http://dig.isi.edu/weapons/data/page/01EAAE974F6F1B5D2F27D0628CCA77DC5772C0D1/1434005002000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5718601', 0.64))
+	Central Point, Medford, Oregon
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5718601	Central Point	Oregon	United States
+
+(u'http://dig.isi.edu/weapons/data/page/47D4D4887E6D82B100AEAFEDE97B463B1B7F3678/1432080914000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/10173842', 0.8))
+	Downtown, Nashville, Tennessee
+	http://dig.isi.edu/gazetteer/data/geonames/place/10173842	Downtown Nashville	Tennessee	United States
+
+(u'http://dig.isi.edu/weapons/data/page/BF852DE68E02F2E7A3218ED8E2ED5A34F490EEE7/1435259363000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5417598', 0.7))
+	Colorado Springs, Colorado Springs, Colorado
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5417598	Colorado Springs	Colorado	United States
+
+(u'http://dig.isi.edu/weapons/data/page/F58A6DD67D9779FC06FFA13C9558174BE9E4227F/1431931131000/processed', (u'http://dig.isi.edu/gazetteer/data/geonames/place/5417598', 0.7))
+	Colorado Springs, Colorado Springs, Colorado
+	matched: http://dig.isi.edu/gazetteer/data/geonames/place/5417598	Colorado Springs	Colorado	United States
+	

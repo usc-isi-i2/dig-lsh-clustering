@@ -1,0 +1,5 @@
+setup.py
+jq.egg-info/PKG-INFO
+jq.egg-info/SOURCES.txt
+jq.egg-info/dependency_links.txt
+jq.egg-info/top_level.txt
