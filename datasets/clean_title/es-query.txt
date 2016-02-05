@@ -1,7 +1,0 @@
-curl --user memex:digdig -XGET 'http://karma-dig-service.cloudapp.net:9090/dig-latest/_search?size=100000' -d '{
-    "_source": ["hasFeatureCollection.text_title_clean_feature.featureValue", "uri"],
-    "query" : {
-        "match_all": {}
-    }
-}
-'
