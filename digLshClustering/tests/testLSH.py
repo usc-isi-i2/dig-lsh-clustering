@@ -46,7 +46,6 @@ def testLSH(sc, inputFilename,outputFilename,configFilename,
     tokenizer = Tokenizer(configFilename, **kwargs)
     rdd_tokenized = tokenizer.perform(rdd_input)
 
-
     futil = FileUtil(sc)
     outOptions = {}
 
@@ -86,7 +85,6 @@ def main():
     parser.add_argument('-o','--output_dir', required=True)
     parser.add_argument('--config', default=None, required=True)
     parser.add_argument('--file_format', default='sequence', choices=('text', 'sequence'))
-    parser.add_argument('--data_type', default='json', choices=('json', 'csv'))
 
     parser.add_argument("-n","--numHashes",type=int,help="number of minhashes", default=100)
     parser.add_argument("-b","--numItemsInBand",type=int,help="number of items in each band", default=10)
