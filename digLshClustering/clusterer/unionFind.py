@@ -171,9 +171,9 @@ class UnionFind:
             x = tuple[1]
             ##if it's in the form of rdd x will be a dictionary else it will be string
             if isinstance(x,dict):
-                cluster = x['cluster']
+                cluster = x["members"]
             else:
-                cluster = json.loads(x)["cluster"]
+                cluster = json.loads(x)["members"]
             res = []
             for item in cluster:
                 res.append(item["uri"])
@@ -188,10 +188,11 @@ class UnionFind:
 
         def save_as_json(tuple):
             key = tuple[0]
-            json_obj = {"cluster": []}
-            json_obj["cluster"].append({"uri": key})
+            json_obj = {"members": []}
+            json_obj["members"].append({"uri": key})
+            json_obj["cluster_id"]=key
             for val in tuple[1]:
-                json_obj["cluster"].append({"uri": val})
+                json_obj["members"].append({"uri": val})
             return key + "/cluster", json_obj
 
         rdd_final = rdd_final.map(save_as_json)

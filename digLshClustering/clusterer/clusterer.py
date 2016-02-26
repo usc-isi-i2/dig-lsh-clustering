@@ -99,8 +99,8 @@ class Clusterer:
                     candidate["uri"] = str(match)
                 json_obj[candidates_name].append(candidate)
         else:
-            json_obj = {"cluster":[]}
-            json_obj["cluster"].append({"uri":key})
+            json_obj = {"members":[]}
+            json_obj["members"].append({"uri":key})
             for match in matches:
                 # print "Match:", type(match), ", ", match
                 candidate = {}
@@ -110,7 +110,7 @@ class Clusterer:
                         candidate["score"] = match[1]
                 else:
                     candidate["uri"] = str(match)
-                json_obj["cluster"].append(candidate)
+                json_obj["members"].append(candidate)
 
 
         return key + "/cluster", json_obj
