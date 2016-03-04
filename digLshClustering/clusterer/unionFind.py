@@ -2,7 +2,7 @@
 from pyspark import SparkContext
 from optparse import OptionParser
 import json
-
+from digSparkUtil.fileUtil import FileUtil
 
 # Implementation Of: https://chasebradford.wordpress.com/2010/10/23/mapreduce-implementation-for-union-find/
 
@@ -146,6 +146,8 @@ class UnionFind:
         self.prevSums = -1
         self.numTries = 0
         self.options = options
+        print 'in unionFind'
+
 
 
     def perform(self, rdd):
@@ -171,9 +173,9 @@ class UnionFind:
             x = tuple[1]
             ##if it's in the form of rdd x will be a dictionary else it will be string
             if isinstance(x,dict):
-                cluster = x["members"]
+                cluster = x["member"]
             else:
-                cluster = json.loads(x)["members"]
+                cluster = json.loads(x)["member"]
             res = []
             for item in cluster:
                 res.append(item["uri"])
@@ -188,12 +190,16 @@ class UnionFind:
 
         def save_as_json(tuple):
             key = tuple[0]
-            json_obj = {"members": []}
-            json_obj["members"].append({"uri": key})
-            json_obj["cluster_id"]=key
+            json_obj = {"member": [],"a":"http://schema.dig.isi.edu/ontology/Cluster"}
+            json_obj["member"].append({"uri": key,"a":"http://schema.org/WebPage"})
+            #json_obj["uri"]=key
+            concat_str =''
             for val in tuple[1]:
-                json_obj["members"].append({"uri": val})
-            return key + "/cluster", json_obj
+                json_obj["member"].append({"uri": val,"a":"http://schema.org/WebPage"})
+                concat_str += val
+            cluster_id = "http://dig.isi.edu/ht/data/" + str(hash(concat_str)% 982451653)
+            json_obj["uri"]=cluster_id
+            return cluster_id + "/cluster", json_obj
 
         rdd_final = rdd_final.map(save_as_json)
         return rdd_final

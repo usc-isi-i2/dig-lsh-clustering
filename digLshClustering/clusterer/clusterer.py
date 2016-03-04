@@ -43,7 +43,7 @@ class Clusterer:
     def compute_clusters(self, data):
         lsh_clusters = data.groupByKey(self.numPartitions)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
-        return clusters_with_dups.reduceByKey(lambda value1, value2: self.__remove_duplicates(value1, value2))
+        return clusters_with_dups.reduceByKey(lambda value1, value2: self.__remove_duplicates(value1, value2),numPartitions=self.numPartitions)
 
     def compute_identical_clusters(self, data):
         lsh_clusters = data.groupByKey(self.numPartitions)
@@ -99,8 +99,8 @@ class Clusterer:
                     candidate["uri"] = str(match)
                 json_obj[candidates_name].append(candidate)
         else:
-            json_obj = {"members":[]}
-            json_obj["members"].append({"uri":key})
+            json_obj = {"member":[]}
+            json_obj["member"].append({"uri":key})
             for match in matches:
                 # print "Match:", type(match), ", ", match
                 candidate = {}
@@ -110,7 +110,7 @@ class Clusterer:
                         candidate["score"] = match[1]
                 else:
                     candidate["uri"] = str(match)
-                json_obj["members"].append(candidate)
+                json_obj["member"].append(candidate)
 
 
         return key + "/cluster", json_obj
