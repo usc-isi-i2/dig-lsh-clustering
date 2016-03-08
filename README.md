@@ -26,14 +26,14 @@ python dig-lsh-clustering/digLshClustering/tests/testLSH.py \
       --config dig-lsh-clustering/digLshClustering/tests/tokenizer.json 
 ```
 
-Or if you want to import this library into you code check [here](https://github.com/usc-isi-i2/dig-lsh-clustering/blob/devel/digLshClustering/tests/testLSH.py) for the usage or  
+Or if you want to import this library into you code check [here](https://github.com/usc-isi-i2/dig-lsh-clustering/blob/master/digLshClustering/tests/testLSH.py) for the usage or  
 
 
 This library uses [spark-util](https://github.com/usc-isi-i2/dig-sparkutil). This is file util built for spark rdds to read them and save them easily.
 
 
 #### Examples
-To run this code, you have to input a config file which generates tokens. Let's look at an example with the config file present [here](https://github.com/usc-isi-i2/dig-lsh-clustering/blob/devel/digLshClustering/tests/tokenizer.json) 
+To run this code, you have to input a config file which generates tokens. Let's look at an example with the config file present [here](https://github.com/usc-isi-i2/dig-lsh-clustering/blob/master/sample-files/config.json) 
 ```
 {
   "fieldConfig": {
@@ -56,7 +56,7 @@ To run this code, you have to input a config file which generates tokens. Let's 
   }
 }
 ```
-Let's take the input present [here](https://raw.githubusercontent.com/usc-isi-i2/dig-lsh-clustering/devel/digLshClustering/tests/text-json/input) 
+Let's take the input present [here](https://raw.githubusercontent.com/usc-isi-i2/dig-lsh-clustering/master/sample-files/input) 
 
 If you run the clustering using the command
 ```
@@ -65,7 +65,7 @@ python dig-lsh-clustering/digLshClustering/tests/testLSH.py \
       -o dig-lsh-clustering/digLshClustering/tests/text-json/output \
       --config dig-lsh-clustering/digLshClustering/tests/tokenizer.json 
 ```
-you will get the output present [here](https://github.com/usc-isi-i2/dig-lsh-clustering/tree/devel/digLshClustering/tests/text-json/output) 
+you will get the output present [here](https://github.com/usc-isi-i2/dig-lsh-clustering/tree/master/sample-files/output) 
 
 The results get better if your input size increases. Sample input I used here has only 500 lines, so the results might not be great.
 
