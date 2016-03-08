@@ -1,7 +1,7 @@
 {
   "fieldConfig": {
     "0": {
-      "path": ".signature",
+      "path": "signature",
       "prefix": "",
       "allow_blank": false,
       "analyzer": {
