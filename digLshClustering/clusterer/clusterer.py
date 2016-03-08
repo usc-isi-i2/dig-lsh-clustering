@@ -41,7 +41,7 @@ class Clusterer:
         return clusters_with_dups.reduceByKey(lambda value1, value2: self.__remove_duplicates(value1, value2))
 
     def compute_clusters(self, data):
-        lsh_clusters = data.groupByKey(self.numPartitions)
+        lsh_clusters = data.partitionBy(self.numPartitions).groupByKey(self.numPartitions)
         clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
         return clusters_with_dups.reduceByKey(lambda value1, value2: self.__remove_duplicates(value1, value2),numPartitions=self.numPartitions)
 
@@ -62,7 +62,10 @@ class Clusterer:
         return top_data.flatMap(lambda x: list(self.__generate_csv(x[0], x[1], separator)))
 
     def output_json(self, data, top_k, candidates_name):
-        sorted_data = data.mapValues(lambda x: self.__sort_by_score(x))
+        if self.computeSimilarity is True:
+            sorted_data = data.mapValues(lambda x: self.__sort_by_score(x))
+        else:
+            sorted_data = data
         if self.computeSimilarity is True and top_k != -1:
             top_data = sorted_data.mapValues(lambda x: self.__get_top_k(x, top_k))
         else:
@@ -159,7 +162,8 @@ class Clusterer:
                             if self.threshold <= 0 or score >= self.threshold:
                                 yield key1, [(key2, score)]
                         else:
-                            yield key1, [(key2, 0)]
+                            # yield key1, [(key2, 0)]
+                            yield key1, set(key2)
 
     def __output_key_cluster_ids(self, lsh_key, cluster):
         if len(cluster) > 0 :
@@ -187,26 +191,29 @@ class Clusterer:
         if value2 is None:
             return value1
 
-        seen = list()
-        for i in range(0, len(value1)):
-            match = value1[i]
-            seen.append(str(match[0]))
+        if self.computeSimilarity is True:
+            seen = list()
+            for i in range(0, len(value1)):
+                match = value1[i]
+                seen.append(str(match[0]))
 
-        for i in range(0, len(value2)):
-            match = value2[i]
-            key = str(match[0])
-            if key in seen:
-                idx = seen.index(key)
+            for i in range(0, len(value2)):
+                match = value2[i]
+                key = str(match[0])
+                if key in seen:
+                    idx = seen.index(key)
 
-                score = value1[idx][1]
-                this_score = match[1]
+                    score = value1[idx][1]
+                    this_score = match[1]
 
-                if this_score > score:
-                    value1[idx] = (key, this_score)
-                continue
-            #print "Added new:", key, "seen:", seen
-            seen.append(key)
-            value1.append(match)
+                    if this_score > score:
+                        value1[idx] = (key, this_score)
+                    continue
+                #print "Added new:", key, "seen:", seen
+                seen.append(key)
+                value1.append(match)
+        else:
+            return value1.union(value2)
 
         return value1
 

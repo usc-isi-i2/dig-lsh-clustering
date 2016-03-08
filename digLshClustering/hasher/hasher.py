@@ -14,7 +14,7 @@ class Hasher:
         self.hasher = LSH(options.get("numHashes",100),options.get("numItemsInBand",10), None)
         self.save_min_hash = options.get("saveMinhashes",False)
         print 'in hashing'
-        print options.get("numHashes",100),options.get("numsItemsInBand",10),options.get("saveMinhashes",False)
+        print options.get("numHashes",100),options.get("numItemsInBand",10),options.get("saveMinhashes",False)
 
 
     def perform(self,rdd):
