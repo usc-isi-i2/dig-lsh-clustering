@@ -21,7 +21,7 @@ pip install digLshClustering
 ```
 python dig-lsh-clustering/digLshClustering/tests/testLSH.py \
       -i dig-lsh-clustering/digLshClustering/tests/text-json/input --file_format text \
-      --numHashes 20 --numItemsInBand 10 --computeSimilarity --threshold 0.8 \
+      --numHashes 20 --numItemsInBand 10 --threshold 0.8 \
       -o dig-lsh-clustering/digLshClustering/tests/text-json/output \
       --config dig-lsh-clustering/digLshClustering/tests/tokenizer.json 
 ```
