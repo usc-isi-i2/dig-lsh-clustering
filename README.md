@@ -82,7 +82,7 @@ The results get better if your input size increases. Sample input I used here ha
 #### Required Arguments: 
 1. Input file on which you want to cluster
 2. config file : tokenizer specs -  
-check [sample tokenizer] (https://github.com/usc-isi-i2/dig-lsh-clustering/blob/devel/digLshClustering/tests/tokenizer.json)
+check [sample tokenizer] (https://github.com/usc-isi-i2/dig-lsh-clustering/blob/master/sample-files/config.json)
 3. output directory
 
 #### How to run with all the Options Available
