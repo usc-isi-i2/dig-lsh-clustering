@@ -90,6 +90,8 @@ def main():
     parser.add_argument("-b","--numItemsInBand",type=int,help="number of items in each band", default=10)
 
     parser.add_argument("-s","--computeSimilarity",action="store_true",help="compute similarity", default=True)
+    parser.add_argument("-m", "--saveMinhashes", action="store_true", default=False, help="save minhashes")
+
     parser.add_argument("-t","--threshold",type=float,help="similarity threshold", default=0.0)
     parser.add_argument("-e","--base",help="base file", default="")
     parser.add_argument("-k","--topk", type=int,help="top n matches", default=3)
