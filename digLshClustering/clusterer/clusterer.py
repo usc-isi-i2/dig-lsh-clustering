@@ -15,7 +15,7 @@ class Clusterer:
         self.base = options.get("base","")
         self.topk = options.get("topk","3")
         self.candidates_name = options.get("candidatesName","candidates")
-        print 'in clustering'
+        #print 'in clustering'
         print self.computeSimilarity,self.threshold,self.topk
 
     def perform(self,rdd):
@@ -163,7 +163,9 @@ class Clusterer:
                                 yield key1, [(key2, score)]
                         else:
                             # yield key1, [(key2, 0)]
-                            yield key1, set(key2)
+                            key2_set = set()
+                            key2_set.add(key2)
+                            yield key1, key2_set
 
     def __output_key_cluster_ids(self, lsh_key, cluster):
         if len(cluster) > 0 :

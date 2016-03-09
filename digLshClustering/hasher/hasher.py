@@ -13,12 +13,12 @@ class Hasher:
         self.signer = MinHashSignature(options.get("numHashes",100))
         self.hasher = LSH(options.get("numHashes",100),options.get("numItemsInBand",10), None)
         self.save_min_hash = options.get("saveMinhashes",False)
-        print 'in hashing'
+        #print 'in hashing'
         print options.get("numHashes",100),options.get("numItemsInBand",10),options.get("saveMinhashes",False)
 
 
-    def perform(self,rdd):
-        rdd = rdd.map(lambda (x,y) : (x,json.dumps(y)))
+    def perform(self, rdd):
+        #rdd = rdd.map(lambda (x,y) : (x,json.dumps(y)))
         return self.compute_hashes(rdd)
 
     def compute_hashes(self, data):
@@ -26,14 +26,15 @@ class Hasher:
 
     def compute_row_lsh(self, key, row):
         if len(row) > 0:
-            #print "Sign:", row
             min_hash_sig = self.signer.sign(row)
+            #print "Sign:", row, " -> ", min_hash_sig
             #print min_hash_sig
             if min_hash_sig is not None:
                 lsh_sig = list(self.hasher.hash(min_hash_sig))
                 if self.save_min_hash is False:
                     min_hash_sig = None
                 for lsh_val in lsh_sig:
+                    #print lsh_val, (key, min_hash_sig)
                     yield lsh_val, (key, min_hash_sig)
 
 
