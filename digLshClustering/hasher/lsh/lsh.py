@@ -41,14 +41,18 @@ class MinHashSignature(Signature):
         str_n = str(n)
         try:
             #print x
-            combined = str_n + x.encode('utf-8', 'ignore')
+            if type(x) == str:
+                combined = str_n + x
+            else:
+                combined = str_n + x.encode('utf-8', 'ignore')
             return hashlib.md5(combined).hexdigest()
         except:
-            print "x:", type(x)
-            print "n:", type(n)
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            sys.stderr.write("\nError in hashing:" + str(lines))
+            # print "x:", type(x)
+            # print "n:", type(n)
+            # exc_type, exc_value, exc_traceback = sys.exc_info()
+            # lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            # sys.stderr.write("\nError in hashing:" + str(lines))
+            sys.stderr.write("\nError in hashing:" + x)
             pass
 
     def sign(self, s):
