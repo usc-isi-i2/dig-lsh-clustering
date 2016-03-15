@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from pyspark import SparkContext
+from pyspark import SparkContext, StorageLevel, SparkConf
 from optparse import OptionParser
 import json
 from digSparkUtil.fileUtil import FileUtil
@@ -19,30 +19,30 @@ def prepareMap(tuple):
 
 
 def electMap(tuple):
-    x = tuple[1]
+    key = tuple[0]
+    if key == "OPEN":
+        x = tuple[1]
 
-    pick = str(x[0])
-    for z in x[1:]:
-        z = str(z)
-        if z < pick:
-            pick = z
-    res = []
-    for z in x:
-        z = str(z)
-        if z != pick:
-            # print "ELECTMAP:", z, ",", [pick]
-            yield z, [pick]
+        pick = str(x[0])
+        for z in x[1:]:
+            z = str(z)
+            if z < pick:
+                pick = z
+        res = []
+        for z in x:
+            z = str(z)
+            if z != pick:
+                yield z, [pick]
             res.append(z)
 
-    # print "ELECTMAP:", pick, ",", res
-    yield pick, res
+        yield pick, res
 
 
 def finalMap(tuple):
     # print "FINAL MAP:", tuple
-    pick = str(tuple[0])
+    # pick = str(tuple[0])
     x = tuple[1]
-
+    pick = x[0]
     for z in x:
         z = str(z)
         if z < pick:
@@ -53,7 +53,6 @@ def finalMap(tuple):
         if z != pick:
             res.append(z)
 
-    # print "FINALMAP RETURNS:", pick, ",", res
     return (pick, res)
 
 
@@ -78,65 +77,25 @@ def partitionMap(tuple):
         return value[0], [key]
 
 
-def partitionReduce(val1, val2):
-    global OPEN
-    counts = dict()
-    for val in val1:
-        counts[str(val)] = 1
+def partitionReduceMap(tuple):
+    arr = tuple[1]
+    key = "DISJOINT"
+    res = list()
+    for x in arr:
+        if x[1] != 2:
+            key = "OPEN"
+            break
 
-    for val in val2:
-        if str(val) in counts:
-            counts[str(val)] = counts[str(val)] + 1
-        else:
-            counts[str(val)] = 1
-
-    openValue = False
-    res = set()
-    for val in val1:
-        if counts[str(val)] == 1:
-            openValue = True
-        res.add(val)
-
-    for val in val2:
-        if counts[str(val)] == 1:
-            openValue = True
-        res.add(val)
-
-    # print "PARTITIONREDUCE:", list(res)
-    return list(res)
-
-
-def partitionReduceOpen(val1, val2):
-    # print "partitionReduceOpen:", val1, " :: ", val2
-    val1.extend(val2)
-    return val1
-
-
-def compute_sum(rdd1, rdd2):
-    # print "Compute_sum", rdd1[0], ":", rdd1[1], " AND ", rdd2[0], ":", rdd2[1]
-    sum1 = 0
-    if rdd1[1]:
-        sum1 = check_if_open(rdd1[1])
-    sum2 = 0
-    if rdd2[1]:
-        sum2 = check_if_open(rdd2[1])
-    # print "Sum:", sum1, "+", sum2, "=", (sum1+sum2)
-    return sum1 + sum2
+    for x in arr:
+        res.append(x[0])
+    return key, res
 
 
 def check_if_open(tuple):
     arr = tuple[1]
-    counts = dict()
     for val in arr:
-        if str(val) in counts:
-            counts[str(val)] += 1
-        else:
-            counts[str(val)] = 1
-
-    for val in arr:
-        if counts[str(val)] != 2:
+        if val[1] != 2:
             return 1
-
     return 0
 
 
@@ -146,17 +105,37 @@ class UnionFind:
         self.prevSums = -1
         self.numTries = 0
         self.options = options
-        print 'in unionFind'
-
-
+        self.numPartitions = options.get("numPartitions", -1)
+        self.input_prefix = options.get("inputPrefix", None)
+        self.numIterations = options.get("numIterations", -1)
 
     def perform(self, rdd):
         rdd = self.read_input(rdd)
+
+        rdd = rdd.map(prepareMap)
+        rdd_list = list()
+        num = 0
         while True:
-            rdd = self.run(rdd)
+            new_rdd = self.run(rdd, self.numPartitions)
+
+            rdd_list.append(new_rdd.filter(lambda x: x[0] == "DISJOINT"))
+            rdd = new_rdd.filter(lambda x: x[0] == "OPEN")
+
             if self.isEnd():
                 break
-        rdd = self.format_output(rdd)
+
+            num = num + 1
+            if self.numIterations > 0 and num >= self.numIterations:
+                break
+
+        all_rdd = rdd
+        for the_rdd in rdd_list[0:]:
+            all_rdd = all_rdd.union(the_rdd)
+
+        # for x in all_rdd.collect():
+        #     print "RDDs:", x
+
+        rdd = self.format_output(all_rdd)
         return rdd
 
     def output_csv(self, key, matches, separator):
@@ -169,50 +148,144 @@ class UnionFind:
         yield line
 
     def read_input(self, rdd):
-        def parse_json(tuple):
+        def parse_json(tuple, prefix):
             x = tuple[1]
+
             ##if it's in the form of rdd x will be a dictionary else it will be string
-            if isinstance(x,dict):
+            if isinstance(x, dict):
                 cluster = x["member"]
             else:
                 cluster = json.loads(x)["member"]
             res = []
             for item in cluster:
-                res.append(item["uri"])
+                uri = item["uri"]
+                if prefix is not None:
+                    idx = uri.rfind("/")
+                    if idx != -1:
+                        uri = uri[idx + 1:]
+                res.append(uri)
             return res
 
-        rdd = rdd.map(lambda x: ("OPEN", parse_json(x)))
+        rdd = rdd.map(lambda x: ("OPEN", parse_json(x, self.input_prefix)))
         return rdd
 
     def format_output(self, rdd):
         rdd_map = rdd.map(finalMap)
         rdd_final = rdd_map.reduceByKey(electReduce)
+        prefix = self.input_prefix
+        if prefix is None:
+            prefix = ""
 
-        def save_as_json(tuple):
+        def save_as_json(prefix, tuple):
             key = tuple[0]
-            json_obj = {"member": [],"a":"http://schema.dig.isi.edu/ontology/Cluster"}
-            json_obj["member"].append({"uri": key,"a":"http://schema.org/WebPage"})
+            json_obj = {"member": [], "a": "http://schema.dig.isi.edu/ontology/Cluster"}
+            json_obj["member"].append({"uri": prefix + key, "a": "http://schema.org/WebPage"})
             #json_obj["uri"]=key
-            concat_str =''
+            concat_str = ''
             for val in tuple[1]:
-                json_obj["member"].append({"uri": val,"a":"http://schema.org/WebPage"})
+                val = prefix + val
+                json_obj["member"].append({"uri": val, "a": "http://schema.org/WebPage"})
                 concat_str += val
-            cluster_id = "http://dig.isi.edu/ht/data/" + str(hash(concat_str)% 982451653)
-            json_obj["uri"]=cluster_id
+            cluster_id = "http://dig.isi.edu/ht/data/" + str(hash(concat_str) % 982451653)
+            json_obj["uri"] = cluster_id
             return cluster_id + "/cluster", json_obj
 
-        rdd_final = rdd_final.map(save_as_json)
+        rdd_final = rdd_final.map(lambda x: save_as_json(prefix, x))
         return rdd_final
 
-    def run(self, rdd):
-        process_rdd = rdd.map(prepareMap)
-        rdd_elect_map = process_rdd.flatMap(electMap)
-        rdd_elect_reduce = rdd_elect_map.reduceByKey(electReduce)
-        rdd_partition_map = rdd_elect_reduce.map(partitionMap)
-        self.sums = rdd_partition_map.reduceByKey(partitionReduceOpen).map(check_if_open).sum()
-        print "Got sums:", self.sums
+    def run(self, rdd, numPartitions):
+        # print "====================================="
 
-        rdd_partition_reduce = rdd_partition_map.reduceByKey(partitionReduce)
+        rdd_elect_map = rdd.flatMap(electMap)
+        # for x in rdd_elect_map.collect():
+        #     print "ELECT MAP:", x
+        if numPartitions > 0:
+            rdd_elect_reduce = rdd_elect_map.reduceByKey(electReduce, numPartitions)
+        else:
+            rdd_elect_reduce = rdd_elect_map.reduceByKey(electReduce)
+        # for x in rdd_elect_reduce.collect():
+        #     print "ELECT REDUCE:", x
+
+        rdd_partition_map = rdd_elect_reduce.map(partitionMap)
+
+        # for x in rdd_partition_map.collect():
+        #     print "PARTITION MAP:", x
+
+        def merge_arrays(arr, vals):
+            # print "Merge:", arr, " with", vals
+            for val in vals:
+                if type(val) == list:
+                    comp = val[0]
+                else:
+                     comp = val
+                found = False
+                for x in arr:
+                    if x[0] == comp:
+                        found = True
+                        x[1] += 1
+                        break
+                if found is False:
+                    arr.append([comp, 1])
+
+
+            # print "Merge return:", arr
+            return arr
+
+        def merge_key(key, arr):
+            # print "Merge:", arr, " with", vals
+
+            found = False
+            for x in arr:
+                if x[0] == key:
+                    found = True
+                    x[1] += 1
+                    break
+            if found is False:
+                arr.append([key, 2])
+
+
+            # print "Merge return:", arr
+            return key, arr
+
+        def enlist_array(arr):
+            # print "enlist", arr
+            res = list()
+            for x in arr:
+                res.append([x, 1])
+            # print "Enlist return:", res
+            return res
+
+
+
+        if numPartitions > 0:
+            combine = rdd_partition_map.combineByKey((lambda x: enlist_array(x)),
+                                                     (lambda x, y: merge_arrays(x, y)),
+                                                     (lambda x, y: merge_arrays(x, y)),
+                                                     numPartitions
+            ).map(lambda x: merge_key(x[0], x[1]))
+        else:
+            combine = rdd_partition_map.combineByKey((lambda x: enlist_array(x)),
+                                                     (lambda x, y: merge_arrays(x, y)),
+                                                     (lambda x, y: merge_arrays(x, y))
+            ).map(lambda x: merge_key(x[0], x[1]))
+        combine.persist(StorageLevel.MEMORY_AND_DISK)
+
+        the_sums = combine.map(check_if_open).reduce(lambda x, y: x + y)
+        print "Got sums:", the_sums
+
+
+        # for x in combine.collect():
+        #     print "Combine:", x
+
+        rdd_partition_reduce = combine.map(partitionReduceMap)
+
+        self.sums = the_sums
+        combine.unpersist()
+
+
+        # for y in rdd_partition_reduce.collect():
+        #     print "PARTITION REDUCE:", y
+
         # print "RDD:", rdd_partition_reduce.collect()
         return rdd_partition_reduce
 
@@ -223,7 +296,7 @@ class UnionFind:
             end = True
         elif self.prevSums == self.sums:
             self.numTries += 1
-            if self.numTries >= 4:
+            if self.numTries >= 10:
                 end = True
         else:
             self.numTries = 0
@@ -232,8 +305,9 @@ class UnionFind:
 
         return end
 
-'''
+
 if __name__ == "__main__":
+
     sc = SparkContext(appName="LSH-UNION")
     parser = OptionParser()
     parser.add_option("-r", "--separator", dest="separator", type="string",
@@ -248,16 +322,46 @@ if __name__ == "__main__":
                       help="output type: csv/json", default="json")
 
     (c_options, args) = parser.parse_args()
-    inputFilename = args[0]
-    outputFilename = args[1]
+    # inputFilename = args[0]
+    # outputFilename = args[1]
 
-    unionFind = UnionFind()
-    rdd = unionFind.read_input(inputFilename, c_options)
+    kwargs = {
+        "numPartitions": 1,
+        "inputPrefix": "",
+        "numIterations": -1
+    }
 
-    while True:
-        rdd = unionFind.run(rdd)
-        if unionFind.isEnd():
-            break
-    # x = rdd_elect_reduce.flatMap(lambda key, value: unionFind.output_csv(key, value, c_options.separator))
-    unionFind.save_output(rdd, outputFilename, c_options)
-'''
+    unionFind = UnionFind(**kwargs)
+    # input = [
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/A"}, {"uri": "http://dig.isi.edu/ht/data/webpage/B"}, {"uri": "http://dig.isi.edu/ht/data/webpage/C"}]},
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/A"}, {"uri": "http://dig.isi.edu/ht/data/webpage/D"}]},
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/C"}, {"uri": "http://dig.isi.edu/ht/data/webpage/E"}]},
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/F"}, {"uri": "http://dig.isi.edu/ht/data/webpage/G"}]},
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/G"}, {"uri": "http://dig.isi.edu/ht/data/webpage/H"}]},
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/H"}, {"uri": "http://dig.isi.edu/ht/data/webpage/I"}]},
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/J"}, {"uri": "http://dig.isi.edu/ht/data/webpage/K"}]},
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/L"}, {"uri": "http://dig.isi.edu/ht/data/webpage/M"}]},
+    #         {"member": [{"uri":"http://dig.isi.edu/ht/data/webpage/H"}, {"uri": "http://dig.isi.edu/ht/data/webpage/M"}]},
+    #         ]
+    input = [
+        {"member": [{"uri": "A"}, {"uri": "B"}]},
+        {"member": [{"uri": "B"}, {"uri": "C"}]},
+        {"member": [{"uri": "F"}, {"uri": "G"}]},
+        {"member": [{"uri": "H"}, {"uri": "I"}]},
+        {"member": [{"uri": "J"}, {"uri": "K"}]},
+        {"member": [{"uri": "L"}, {"uri": "M"}]},
+        {"member": [{"uri": "N"}, {"uri": "O"}]},
+
+        {"member": [{"uri": "C"}, {"uri": "O"}]},
+        {"member": [{"uri": "K"}, {"uri": "L"}]},
+        {"member": [{"uri": "H"}, {"uri": "F"}]},
+        {"member": [{"uri": "M"}, {"uri": "I"}, {"uri": "N"}]},
+
+        {"member": [{"uri": "D"}, {"uri": "E"}]},
+    ]
+    rdd = sc.parallelize(input).map(lambda x: ("OPEN", x))
+    result_rdd = unionFind.perform(rdd)
+
+    for y in result_rdd.collect():
+        print y
+        print ""
