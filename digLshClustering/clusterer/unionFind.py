@@ -113,12 +113,20 @@ class UnionFind:
         rdd = self.read_input(rdd)
 
         rdd = rdd.map(prepareMap)
-        rdd_list = list()
         num = 0
+
+        rdd_out = None
         while True:
             new_rdd = self.run(rdd, self.numPartitions)
+            disjoint_rdd = new_rdd.filter(lambda x: x[0] == "DISJOINT")
+            if rdd_out is None:
+                rdd_out = disjoint_rdd
+            else:
+                rdd_out = rdd_out.union(disjoint_rdd)
 
-            rdd_list.append(new_rdd.filter(lambda x: x[0] == "DISJOINT"))
+            if self.numPartitions > 0:
+                rdd_out = rdd_out.coalesce(self.numPartitions)
+
             rdd = new_rdd.filter(lambda x: x[0] == "OPEN")
 
             if self.isEnd():
@@ -128,15 +136,11 @@ class UnionFind:
             if self.numIterations > 0 and num >= self.numIterations:
                 break
 
-        all_rdd = rdd
-        for the_rdd in rdd_list[0:]:
-            all_rdd = all_rdd.union(the_rdd)
-
-        # for x in all_rdd.collect():
-        #     print "RDDs:", x
-
-        rdd = self.format_output(all_rdd)
-        return rdd
+        if rdd_out is not None:
+            rdd_out = rdd_out.union(rdd)
+        else:
+            rdd_out = rdd
+        return self.format_output(rdd_out)
 
     def output_csv(self, key, matches, separator):
         line = str(key)
@@ -268,7 +272,7 @@ class UnionFind:
                                                      (lambda x, y: merge_arrays(x, y)),
                                                      (lambda x, y: merge_arrays(x, y))
             ).map(lambda x: merge_key(x[0], x[1]))
-        combine.persist(StorageLevel.MEMORY_AND_DISK)
+        # combine.persist(StorageLevel.MEMORY_AND_DISK)
 
         the_sums = combine.map(check_if_open).reduce(lambda x, y: x + y)
         print "Got sums:", the_sums
@@ -280,7 +284,7 @@ class UnionFind:
         rdd_partition_reduce = combine.map(partitionReduceMap)
 
         self.sums = the_sums
-        combine.unpersist()
+        # combine.unpersist()
 
 
         # for y in rdd_partition_reduce.collect():
