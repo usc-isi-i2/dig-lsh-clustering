@@ -108,6 +108,8 @@ class UnionFind:
         self.numPartitions = options.get("numPartitions", -1)
         self.input_prefix = options.get("inputPrefix", None)
         self.numIterations = options.get("numIterations", -1)
+        self.addToCluster = options.get("addToCluster",None)
+        self.addToMember = options.get("addToMember",None)
 
     def perform(self, rdd):
         rdd = self.read_input(rdd)
@@ -182,8 +184,15 @@ class UnionFind:
 
         def save_as_json(prefix, tuple):
             key = tuple[0]
-            json_obj = {"member": [], "a": "http://schema.dig.isi.edu/ontology/Cluster"}
-            json_obj["member"].append({"uri": prefix + key, "a": "http://schema.org/WebPage"})
+
+            json_obj = {"member": []}
+            if self.addToCluster is not None:
+                json_obj['a'] = self.addToCluster
+
+            member_obj = {"uri":prefix + key}
+            if self.addToMember is not None:
+                member_obj['a'] = self.addToMember
+            json_obj["member"].append(member_obj)
             #json_obj["uri"]=key
             concat_str = ''
             for val in tuple[1]:
