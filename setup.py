@@ -16,7 +16,7 @@ config = {
                          'digSparkUtil',
                          'jq',
                          'digTokenizer'],
-    'version':'0.1.14',
+    'version':'0.1.15',
     'packages': find_packages(exclude=['digLshClustering.tests','digLshClustering.gen_int_input']),
     'scripts': []
 }
