@@ -5,6 +5,7 @@ from optparse import OptionParser
 import json
 import hashlib
 from pyspark import StorageLevel
+from digSparkUtil.fileUtil import FileUtil, as_dict
 
 class Clusterer:
     def __init__(self, **options):
@@ -41,8 +42,12 @@ class Clusterer:
         return clusters_with_dups.reduceByKey(lambda value1, value2: self.__remove_duplicates(value1, value2))
 
     def compute_clusters(self, data):
+        print 'in compute clusters'
         lsh_clusters = data.partitionBy(self.numPartitions).groupByKey(self.numPartitions)
-        clusters_with_dups = lsh_clusters.flatMap(lambda x: self.__output_cluster(x[0], list(x[1])))
+        clusters_with_dups = lsh_clusters.map(lambda x : self._output_cluster(x[0],list(x[1])))
+        #print '\n\nafter map\n\n'
+        #for x in clusters_with_dups.collect():
+         #   print x
         return clusters_with_dups.reduceByKey(lambda value1, value2: self.__remove_duplicates(value1, value2),numPartitions=self.numPartitions)
 
     def compute_identical_clusters(self, data):
@@ -150,22 +155,22 @@ class Clusterer:
             else:
                 yield key, [(match_key, 0)]
 
-    def __output_cluster(self, lsh_key, cluster):
-        if len(cluster) > 0 :
+    def _output_cluster(self,lsh_key,cluster):
+        if (len(cluster)) > 0:
+            min_key = cluster[0][0]
             for data in cluster:
-                key1 = data[0]
-                for match in cluster:
-                    key2 = match[0]
-                    if key1 < key2:
-                        if self.computeSimilarity is True:
-                            score = self.__compute_list_similarity_score(data[1], match[1])
-                            if self.threshold <= 0 or score >= self.threshold:
-                                yield key1, [(key2, score)]
-                        else:
-                            # yield key1, [(key2, 0)]
-                            key2_set = set()
-                            key2_set.add(key2)
-                            yield key1, key2_set
+                if data[0] < min_key:
+                    min_key = data[0]
+
+            if self.computeSimilarity is False:
+                key2_set = set()
+                for data in cluster:
+                    if data[0] != min_key:
+                        key2_set.add(data[0])
+            return (min_key,key2_set)
+
+
+
 
     def __output_key_cluster_ids(self, lsh_key, cluster):
         if len(cluster) > 0 :
@@ -255,30 +260,13 @@ if __name__ == "__main__":
     outputFilename = args[1]
     print "Save to:", outputFilename
 
-    clusterer = Clusterer(c_options.numPartitions,
-                          c_options.computeSimilarity, c_options.threshold)
-    rdd = sc.sequenceFile(inputFilename).mapValues(lambda x: json.loads(x))
-    if len(c_options.base) > 0:
-        base = sc.sequenceFile(c_options.base).mapValues(lambda x: json.loads(x))
-        result = clusterer.compute_clusters_with_base(rdd, base)
-    else:
-        if c_options.computeIdenticalClusters is True:
-            (key_clusterids, result) = clusterer.compute_identical_clusters(rdd)
-        else:
-            result = clusterer.compute_clusters(rdd)
+    kwargs = as_dict(c_options)
+    clusterer = Clusterer(**kwargs)
+    fileUtil = FileUtil(sc)
 
-    if c_options.outputtype == "json":
-        result = clusterer.output_json(result, c_options.topk, c_options.candidates_name)
-    else:
-        result = clusterer.output_csv(result, c_options.topk, c_options.separator)
+    rdd = fileUtil.load_file(inputFilename,file_format='text')
 
-    if c_options.outputformat == "text":
-        result.saveAsTextFile(outputFilename)
-        if c_options.computeIdenticalClusters is True:
-            key_clusterids.saveAsTextFile(outputFilename + "-key-clusterids")
-    else:
-        result.mapValues(lambda x: json.dumps(x)).saveAsSequenceFile(outputFilename)
-        if c_options.computeIdenticalClusters is True:
-            key_clusterids.mapValues(lambda x, y: json.dumps(x)).saveAsSequenceFile(outputFilename + "-key-clusterids")
+    cluster_rdd = clusterer.compute_clusters(rdd)
 
+    fileUtil.save_file(cluster_rdd,outputFilename,file_format='text')
 

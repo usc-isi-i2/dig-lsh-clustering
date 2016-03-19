@@ -182,28 +182,29 @@ class UnionFind:
         if prefix is None:
             prefix = ""
 
+
         def save_as_json(prefix, tuple):
             key = tuple[0]
+            if len(tuple[1])>1:
+                json_obj = {}
+                json_obj['member']=[]
+                concat_str = ''
+                for val in tuple[1]:
+                    val = prefix + val
+                    member_obj = {'uri':val}
+                    if self.addToMember is not None:
+                        member_obj['a']=self.addToMember
+                    json_obj['member'].append(member_obj)
+                    concat_str += val
+                cluster_id = "http://dig.isi.edu/ht/data/" + str(hash(concat_str) % 982451653)
+                json_obj['uri'] = cluster_id
+                if self.addToCluster is not None:
+                    json_obj['a'] = self.addToCluster
 
-            json_obj = {"member": []}
-            if self.addToCluster is not None:
-                json_obj['a'] = self.addToCluster
-
-            member_obj = {"uri":prefix + key}
-            if self.addToMember is not None:
-                member_obj['a'] = self.addToMember
-            json_obj["member"].append(member_obj)
-            #json_obj["uri"]=key
-            concat_str = ''
-            for val in tuple[1]:
-                val = prefix + val
-                json_obj["member"].append({"uri": val, "a": "http://schema.org/WebPage"})
-                concat_str += val
-            cluster_id = "http://dig.isi.edu/ht/data/" + str(hash(concat_str) % 982451653)
-            json_obj["uri"] = cluster_id
-            return cluster_id + "/cluster", json_obj
+                return cluster_id + "/cluster",json_obj
 
         rdd_final = rdd_final.map(lambda x: save_as_json(prefix, x))
+        rdd_final = rdd_final.filter(lambda x : x is not None)
         return rdd_final
 
     def run(self, rdd, numPartitions):
