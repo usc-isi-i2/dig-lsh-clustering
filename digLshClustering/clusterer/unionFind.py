@@ -185,10 +185,14 @@ class UnionFind:
 
         def save_as_json(prefix, tuple):
             key = tuple[0]
-            if len(tuple[1])>1:
+            if len(tuple[1])>0:
                 json_obj = {}
                 json_obj['member']=[]
-                concat_str = ''
+                member_obj = {'uri':prefix + key}
+                if self.addToMember is not None:
+                    member_obj['a'] = self.addToMember
+                json_obj['member'].append(member_obj)
+                concat_str = prefix + key
                 for val in tuple[1]:
                     val = prefix + val
                     member_obj = {'uri':val}
@@ -205,6 +209,8 @@ class UnionFind:
 
         rdd_final = rdd_final.map(lambda x: save_as_json(prefix, x))
         rdd_final = rdd_final.filter(lambda x : x is not None)
+        #for x in rdd_final.collect():
+         #   print x
         return rdd_final
 
     def run(self, rdd, numPartitions):
