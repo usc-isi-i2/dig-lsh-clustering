@@ -14,9 +14,8 @@ config = {
     'author_email': 'dipsykapoor@gmail.com',
     'install_requires': ['nose2',
                          'digSparkUtil',
-                         'jq',
                          'digTokenizer'],
-    'version':'0.1.17',
+    'version':'0.1.18',
     'packages': find_packages(exclude=['digLshClustering.tests','digLshClustering.gen_int_input']),
     'scripts': []
 }
